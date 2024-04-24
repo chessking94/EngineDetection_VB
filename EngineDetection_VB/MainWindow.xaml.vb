@@ -46,6 +46,7 @@ Class MainWindow
         ToggleSource(Visibility.Hidden)
         TogglePreCompareStats(Visibility.Hidden)
         ToggleCompareStats(Visibility.Hidden)
+        btn_Generate.IsEnabled = False
 
         Try
             If db_Connection.State <> System.Data.ConnectionState.Open Then
@@ -100,6 +101,8 @@ Class MainWindow
                 tb_FirstName.Text = ""
             End If
         End If
+
+        btn_ValidateParameters.IsEnabled = False
     End Sub
 
     Private Sub Generate() Handles btn_Generate.Click
@@ -109,11 +112,20 @@ Class MainWindow
 
 #Region "GUI Updates"
     Private Sub ReportTypeChanged() Handles cb_ReportType.SelectionChanged
+        'ensure these are reset if the user went back and changed
         objl_Parameters.ClearVariables()
-        objl_Parameters.ReportType = cb_ReportType.SelectedValue
+        tb_EventName.Text = ""
+        tb_LastName.Text = ""
+        tb_FirstName.Text = ""
+        cb_SourceName.Items.Clear()
+        chk_UseCompareStats.IsChecked = False
+        cb_CompareSource.Items.Clear()
+        cb_CompareTimeControl.Items.Clear()
+        cb_CompareRatingID.Items.Clear()
+        cb_CompareScoreName.Items.Clear()
 
-        If cb_ReportType.SelectedValue IsNot Nothing Then
-            'TODO: is there some way I can avoid hard-coding these report type values?
+        objl_Parameters.ReportType = cb_ReportType.SelectedValue
+        If cb_ReportType.SelectedIndex >= 0 Then
             Select Case cb_ReportType.SelectedValue
                 Case "Event"
                     ToggleEvent(Visibility.Visible)
@@ -128,43 +140,31 @@ Class MainWindow
             ToggleSource(Visibility.Hidden)
             TogglePreCompareStats(Visibility.Hidden)
             ToggleCompareStats(Visibility.Hidden)
-
-            'ensure these are reset if the user went back and changed
-            tb_EventName.Text = ""
-            tb_LastName.Text = ""
-            tb_FirstName.Text = ""
-            cb_SourceName.SelectedValue = Nothing
-            chk_UseCompareStats.IsChecked = False
-            cb_CompareSource.SelectedValue = Nothing
-            cb_CompareTimeControl.SelectedValue = Nothing
-            cb_CompareRatingID.SelectedValue = Nothing
-            cb_CompareScoreName.SelectedValue = Nothing
         End If
     End Sub
 
     Private Sub CompareStats_Clicked() Handles chk_UseCompareStats.Click
         If chk_UseCompareStats.IsChecked Then
             ToggleCompareStats(Visibility.Visible)
+            btn_Generate.IsEnabled = False
 
             cb_CompareSource.IsEnabled = True
             cb_CompareTimeControl.IsEnabled = False
             cb_CompareRatingID.IsEnabled = False
             cb_CompareScoreName.IsEnabled = False
 
-            'TODO: cb_CompareSource is adding the items 2x
             Dim objm_Sources As List(Of String) = modValidation.CompareSources()
             For Each source As String In objm_Sources
                 cb_CompareSource.Items.Add(source)
             Next
         Else
             ToggleCompareStats(Visibility.Hidden)
+            btn_Generate.IsEnabled = True
             objl_Parameters.ClearCompareVariables()
-
-            'TODO: Need to clear out the items in each combobox
-            cb_CompareSource.SelectedValue = Nothing
-            cb_CompareTimeControl.SelectedValue = Nothing
-            cb_CompareRatingID.SelectedValue = Nothing
-            cb_CompareScoreName.SelectedValue = Nothing
+            cb_CompareSource.Items.Clear()
+            cb_CompareTimeControl.Items.Clear()
+            cb_CompareRatingID.Items.Clear()
+            cb_CompareScoreName.Items.Clear()
         End If
     End Sub
 
@@ -174,6 +174,7 @@ Class MainWindow
         If tb_EventName.Text = "" Then
             btn_ValidateParameters.Visibility = Visibility.Hidden
         Else
+            btn_ValidateParameters.IsEnabled = True
             btn_ValidateParameters.Visibility = Visibility.Visible
         End If
     End Sub
@@ -196,6 +197,7 @@ Class MainWindow
         Else
             tb_LastName.Background = Nothing
             tb_FirstName.Background = Nothing
+            btn_ValidateParameters.IsEnabled = True
             btn_ValidateParameters.Visibility = Visibility.Visible
         End If
     End Sub
@@ -214,55 +216,65 @@ Class MainWindow
     Private Sub SourceChanged() Handles cb_SourceName.SelectionChanged
         objl_Parameters.SourceName = cb_SourceName.SelectedValue
         TogglePreCompareStats(Visibility.Visible)
+        btn_Generate.IsEnabled = True
     End Sub
 
     Private Sub CompareSourceChanged() Handles cb_CompareSource.SelectionChanged
-        objl_Parameters.CompareSourceName = cb_CompareSource.SelectedValue
+        If cb_CompareSource.SelectedIndex >= 0 Then
+            objl_Parameters.CompareSourceName = cb_CompareSource.SelectedValue
 
-        cb_CompareTimeControl.IsEnabled = True
+            cb_CompareTimeControl.IsEnabled = True
 
-        Dim objm_TimeControls As List(Of String) = modValidation.CompareTimeControls(objl_Parameters.CompareSourceName)
-        For Each source As String In objm_TimeControls
-            cb_CompareTimeControl.Items.Add(source)
-        Next
+            Dim objm_TimeControls As List(Of String) = modValidation.CompareTimeControls(objl_Parameters.CompareSourceName)
+            For Each source As String In objm_TimeControls
+                cb_CompareTimeControl.Items.Add(source)
+            Next
 
-        objl_Parameters.CompareRatingID = -1
-        cb_CompareRatingID.SelectedValue = Nothing
+            objl_Parameters.CompareRatingID = -1
+            cb_CompareRatingID.SelectedValue = Nothing
 
-        objl_Parameters.CompareScoreName = ""
-        cb_CompareScoreName.SelectedValue = Nothing
+            objl_Parameters.CompareScoreName = ""
+            cb_CompareScoreName.SelectedValue = Nothing
 
-        cb_CompareRatingID.IsEnabled = False
-        cb_CompareScoreName.IsEnabled = False
+            cb_CompareRatingID.IsEnabled = False
+            cb_CompareScoreName.IsEnabled = False
+        End If
     End Sub
 
     Private Sub CompareTimeControlChanged() Handles cb_CompareTimeControl.SelectionChanged
-        objl_Parameters.CompareTimeControl = cb_CompareTimeControl.SelectedValue
+        If cb_CompareTimeControl.SelectedIndex >= 0 Then
+            objl_Parameters.CompareTimeControl = cb_CompareTimeControl.SelectedValue
 
-        cb_CompareRatingID.IsEnabled = True
+            cb_CompareRatingID.IsEnabled = True
 
-        Dim objm_RatingIDs As List(Of Short) = modValidation.CompareRatingIDs(objl_Parameters.CompareSourceName, objl_Parameters.CompareTimeControl)
-        For Each source As String In objm_RatingIDs
-            cb_CompareRatingID.Items.Add(source)
-        Next
+            Dim objm_RatingIDs As List(Of Short) = modValidation.CompareRatingIDs(objl_Parameters.CompareSourceName, objl_Parameters.CompareTimeControl)
+            For Each source As String In objm_RatingIDs
+                cb_CompareRatingID.Items.Add(source)
+            Next
 
-        objl_Parameters.CompareScoreName = ""
-        cb_CompareScoreName.SelectedValue = Nothing
-        cb_CompareScoreName.IsEnabled = False
+            objl_Parameters.CompareScoreName = ""
+            cb_CompareScoreName.SelectedValue = Nothing
+            cb_CompareScoreName.IsEnabled = False
+        End If
     End Sub
 
     Private Sub CompareRatingIDChanged() Handles cb_CompareRatingID.SelectionChanged
-        objl_Parameters.CompareRatingID = cb_CompareRatingID.SelectedValue
+        If cb_CompareRatingID.SelectedIndex >= 0 Then
+            objl_Parameters.CompareRatingID = cb_CompareRatingID.SelectedValue
 
-        cb_CompareScoreName.IsEnabled = True
+            cb_CompareScoreName.IsEnabled = True
 
-        For Each score As enum_ScoreName In [Enum].GetValues(GetType(enum_ScoreName))
-            cb_CompareScoreName.Items.Add(score.ToString())
-        Next
+            For Each score As enum_ScoreName In [Enum].GetValues(GetType(enum_ScoreName))
+                cb_CompareScoreName.Items.Add(score.ToString())
+            Next
+        End If
     End Sub
 
     Private Sub CompareScoreNameChanged() Handles cb_CompareScoreName.SelectionChanged
-        objl_Parameters.CompareScoreName = cb_CompareScoreName.SelectedValue
+        If cb_CompareScoreName.SelectedIndex >= 0 Then
+            objl_Parameters.CompareScoreName = cb_CompareScoreName.SelectedValue
+        End If
+        btn_Generate.IsEnabled = True
     End Sub
 #End Region
 
