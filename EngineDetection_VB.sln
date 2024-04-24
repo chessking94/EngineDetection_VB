@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34723.18
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "EngineDetection_VB", "EngineDetection_VB\EngineDetection_VB.vbproj", "{8C51691F-AB7D-4175-8D33-BB8E5F2C2124}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8C51691F-AB7D-4175-8D33-BB8E5F2C2124}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C51691F-AB7D-4175-8D33-BB8E5F2C2124}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C51691F-AB7D-4175-8D33-BB8E5F2C2124}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C51691F-AB7D-4175-8D33-BB8E5F2C2124}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5E71B647-7112-41D4-AF0D-06F33B67A60D}
+	EndGlobalSection
+EndGlobal
