@@ -2,32 +2,6 @@
 Imports System.Reflection
 
 Class MainWindow
-    'window opens: only option is to choose report type (Event or Player)
-    'going to be ugly, but am having trouble dynamically generating xaml elements. may need to create/position them all, then update the visibility at each step
-    '''Event path
-    '''expose input box for event name
-    '''validate input against database. if no events of that name are found, error out
-    '''expose input box for game source (values from dim.Source.SourceName). if the event entered only has one possible source, pre-populate it and do not allow field value to change
-    '''if there's multiple options, give user option to choose which one
-
-    '''Player path
-    '''expose input boxes for player first and last names
-    '''validate inputs against database. if no players are found, error out
-    '''expose input box for game source (values from dim.Source). if the event entered only has one possible source, pre-populate it and do not allow field value to change
-    '''if there's multiple options, give user option to choose which one
-    '''expose date entries for start and end dates and allow user to choose the dates. validate to ensure start date is on or before the end date
-
-    'for both paths, guide user in selecting the comparison dataset. All options should come from the DB and/or be predefined
-    '''1. choose a source
-    '''2. choose a time control
-    '''3. choose a ratingID
-    '''4. choose a score name
-
-    'other variables:
-    '''engine - get from DB instead of an input parameter
-    '''depth - get from DB instead of an input parameter
-    '''max eval - seems like getting from the DB would be better
-
     Private bool_Error As Boolean
     Private lst_Errors As New List(Of String)
 
@@ -67,17 +41,16 @@ Class MainWindow
 
 #Region "Buttons"
     Private Sub ValidateParameters() Handles btn_ValidateParameters.Click
+        btn_ValidateParameters.IsEnabled = False
+        tb_EventName.IsEnabled = False
+        tb_FirstName.IsEnabled = False
+        tb_LastName.IsEnabled = False
+
         Dim objm_Sources As List(Of String)
         If objl_Parameters.EventName <> "" Then
             objm_Sources = EventName(objl_Parameters.EventName)
-            'validate event entered exists in the database
-            'if yes, populate source if only one source for the event exists, otherwise populate the options in the sel_Source ComboBox
-            'if no, clear out the event text box and tell the user it was a bad name
         Else
             objm_Sources = PlayerName(objl_Parameters.FirstName, objl_Parameters.LastName)
-            'validate name entered exists in the database
-            'if yes, populate source if only one source for the name exists, otherwise populate the options in the sel_Source ComboBox
-            'if no, clear out the first and last name text boxes and tell the user it was a bad name
         End If
 
         bool_Error = False
@@ -91,8 +64,16 @@ Class MainWindow
 
         If Not bool_Error Then
             ToggleSource(Visibility.Visible)
+            cb_SourceName.IsEnabled = True
+            If cb_SourceName.Items.Count = 1 Then
+                cb_SourceName.SelectedIndex = 0
+                cb_SourceName.IsEnabled = False
+            End If
         Else
             ToggleSource(Visibility.Hidden)
+            tb_EventName.IsEnabled = True
+            tb_FirstName.IsEnabled = True
+            tb_LastName.IsEnabled = True
             MessageBox.Show("No sources for provided name found", "Error", MessageBoxButton.OK, MessageBoxImage.Error)
             If objl_Parameters.EventName <> "" Then
                 tb_EventName.Text = ""
@@ -101,12 +82,11 @@ Class MainWindow
                 tb_FirstName.Text = ""
             End If
         End If
-
-        btn_ValidateParameters.IsEnabled = False
     End Sub
 
     Private Sub Generate() Handles btn_Generate.Click
-        MessageBox.Show("Stub", "Stub", MessageBoxButton.OK, MessageBoxImage.Information)
+        btn_Generate.IsEnabled = False
+        BuildReport()
     End Sub
 #End Region
 
@@ -123,6 +103,9 @@ Class MainWindow
         cb_CompareTimeControl.Items.Clear()
         cb_CompareRatingID.Items.Clear()
         cb_CompareScoreName.Items.Clear()
+        tb_EventName.IsEnabled = True
+        tb_FirstName.IsEnabled = True
+        tb_LastName.IsEnabled = True
 
         objl_Parameters.ReportType = cb_ReportType.SelectedValue
         If cb_ReportType.SelectedIndex >= 0 Then
@@ -157,6 +140,11 @@ Class MainWindow
             For Each source As String In objm_Sources
                 cb_CompareSource.Items.Add(source)
             Next
+
+            If cb_CompareSource.Items.Count = 1 Then
+                cb_CompareSource.SelectedIndex = 0
+                cb_CompareSource.IsEnabled = False
+            End If
         Else
             ToggleCompareStats(Visibility.Hidden)
             btn_Generate.IsEnabled = True
@@ -238,6 +226,11 @@ Class MainWindow
 
             cb_CompareRatingID.IsEnabled = False
             cb_CompareScoreName.IsEnabled = False
+
+            If cb_CompareTimeControl.Items.Count = 1 Then
+                cb_CompareTimeControl.SelectedIndex = 0
+                cb_CompareTimeControl.IsEnabled = False
+            End If
         End If
     End Sub
 
@@ -255,6 +248,11 @@ Class MainWindow
             objl_Parameters.CompareScoreName = ""
             cb_CompareScoreName.SelectedValue = Nothing
             cb_CompareScoreName.IsEnabled = False
+
+            If cb_CompareRatingID.Items.Count = 1 Then
+                cb_CompareRatingID.SelectedIndex = 0
+                cb_CompareRatingID.IsEnabled = False
+            End If
         End If
     End Sub
 
@@ -267,6 +265,11 @@ Class MainWindow
             For Each score As enum_ScoreName In [Enum].GetValues(GetType(enum_ScoreName))
                 cb_CompareScoreName.Items.Add(score.ToString())
             Next
+
+            If cb_CompareScoreName.Items.Count = 1 Then
+                cb_CompareScoreName.SelectedIndex = 0
+                cb_CompareScoreName.IsEnabled = False
+            End If
         End If
     End Sub
 
