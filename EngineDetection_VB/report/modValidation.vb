@@ -2,7 +2,6 @@
 
 Friend Module modValidation
     Friend Function EventName(pi_EventName As String) As List(Of String)
-        '''returns a list of source names for the event name passed
         Dim rtn_SourceNames As New List(Of String)
 
         Using objl_CMD As New SqlCommand(EventSources(), MainWindow.db_Connection)

@@ -1,7 +1,7 @@
 ﻿Friend Module modQueries
 #Region "Validation"
     Public Function EventSources() As String
-        Dim rtn_Query As String =
+        Return _
             "
                 SELECT
                 e.EventName,
@@ -12,11 +12,10 @@
 
                 WHERE e.EventName = @EventName
             "
-        Return rtn_Query
     End Function
 
     Public Function NameSources() As String
-        Dim rtn_Query As String =
+        Return _
             "
                 SELECT
                 p.FirstName,
@@ -29,11 +28,10 @@
                 WHERE p.FirstName = @FirstName
                 AND p.LastName = @LastName
             "
-        Return rtn_Query
     End Function
 
     Public Function CompareSources() As String
-        Dim rtn_Query As String =
+        Return _
             "
                 SELECT DISTINCT
                 s.SourceName
@@ -41,11 +39,10 @@
                 FROM stat.StatisticsSummary ss
                 JOIN dim.Sources s ON ss.SourceID = s.SourceID
             "
-        Return rtn_Query
     End Function
 
     Public Function CompareTimeControls() As String
-        Dim rtn_Query As String =
+        Return _
             "
                 SELECT DISTINCT
                 tc.TimeControlName
@@ -56,11 +53,10 @@
 
                 WHERE s.SourceName = @SourceName
             "
-        Return rtn_Query
     End Function
 
     Public Function CompareRatingIDs() As String
-        Dim rtn_Query As String =
+        Return _
             "
                 SELECT DISTINCT
                 ss.RatingID
@@ -74,7 +70,140 @@
 
                 ORDER BY ss.RatingID
             "
-        Return rtn_Query
+    End Function
+#End Region
+
+#Region "ID's"
+    Public Function SourceID() As String
+        Return "SELECT SourceID FROM dim.Sources WHERE SourceName = @SourceName"
+    End Function
+
+    Public Function EventID() As String
+        Return "SELECT EventID FROM dim.Events WHERE EventName = @EventName"
+    End Function
+
+    Public Function TimeControlID() As String
+        Return "SELECT TimeControlID FROM dim.TimeControls WHERE TimeControlName = @TimeControlName"
+    End Function
+
+    Public Function ScoreID() As String
+        Return "SELECT ScoreID FROM dim.Scores WHERE ScoreName = @ScoreName"
+    End Function
+
+    Public Function PlayerID() As String
+        Return _
+            "
+                SELECT
+                p.PlayerID
+
+                FROM dim.Players p
+                JOIN dim.Sources s ON p.SourceID = s.SourceID
+
+                WHERE p.FirstName = @FirstName
+                AND p.LastName = @LastName
+                AND s.SourceName = @SourceName
+            "
+    End Function
+#End Region
+
+#Region "Info"
+    Public Function EventEngine() As String
+        Return _
+            "
+                SELECT TOP 1
+                eng.EngineName
+
+                FROM lake.Moves m
+                JOIN lake.Games g ON m.GameID = g.GameID
+                JOIN dim.Engines eng ON m.EngineID = eng.EngineID
+
+                WHERE g.EventID = @EventID
+
+                GROUP BY
+                eng.EngineName
+
+                ORDER BY
+                COUNT(m.MoveNumber) DESC
+            "
+    End Function
+
+    Public Function PlayerEngine() As String
+        Return _
+            "
+                SELECT
+                eng.EngineName
+
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g
+	                ON m.GameID = g.GameID
+                JOIN ChessWarehouse.dim.Colors c
+	                ON m.ColorID = c.ColorID
+                JOIN ChessWarehouse.dim.Players wp
+	                ON g.WhitePlayerID = wp.PlayerID
+                JOIN ChessWarehouse.dim.Players bp
+	                ON g.BlackPlayerID = bp.PlayerID
+                JOIN dim.Engines eng
+	                ON m.EngineID = eng.EngineID
+
+                WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
+                --TODO: Add date parameters
+
+                GROUP BY
+                eng.EngineName
+
+                ORDER BY
+                COUNT(m.MoveNumber) DESC
+            "
+    End Function
+
+    Public Function EventDepth() As String
+        Return _
+            "
+                SELECT TOP 1
+                m.Depth
+
+                FROM lake.Moves m
+                JOIN lake.Games g ON m.GameID = g.GameID
+
+                WHERE g.EventID = @EventID
+
+                GROUP BY
+                m.Depth
+
+                ORDER BY
+                COUNT(m.MoveNumber) DESC
+            "
+    End Function
+
+    Public Function PlayerDepth() As String
+        Return _
+            "
+                SELECT
+                m.Depth
+
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g
+	                ON m.GameID = g.GameID
+                JOIN ChessWarehouse.dim.Colors c
+	                ON m.ColorID = c.ColorID
+                JOIN ChessWarehouse.dim.Players wp
+	                ON g.WhitePlayerID = wp.PlayerID
+                JOIN ChessWarehouse.dim.Players bp
+	                ON g.BlackPlayerID = bp.PlayerID
+
+                WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
+                AND m.IsTablebase = 0
+
+                GROUP BY
+                m.Depth
+
+                ORDER BY
+                COUNT(m.MoveNumber) DESC
+            "
+    End Function
+
+    Public Function MaxEval() As String
+        Return "SELECT Value FROM dbo.Settings WHERE Name = 'Max Eval'"
     End Function
 #End Region
 End Module

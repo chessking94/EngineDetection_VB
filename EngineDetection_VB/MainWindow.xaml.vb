@@ -86,6 +86,7 @@ Class MainWindow
 
     Private Sub Generate() Handles btn_Generate.Click
         btn_Generate.IsEnabled = False
+        objl_Parameters.PopulateIDVariables()
         BuildReport()
     End Sub
 #End Region

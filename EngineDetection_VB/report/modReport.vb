@@ -1,15 +1,24 @@
 ﻿Imports Microsoft.VisualBasic.FileIO
 Imports System.IO
 Imports System.Reflection
-Imports System.Text
 
 Friend Module modReport
-    Public objl_Lines As New List(Of String)
+    Public objm_Lines As New List(Of String)
 
     Friend Sub BuildReport()
-        objl_Lines.Add("Test line 1")
-        objl_Lines.Add("Test line 2")
-        objl_Lines.Add("Test line 3")
+        Dim objl_Info As New clsInfo
+        'Dim objl_Detail As New clsDetail
+        'call methods in order to append sections to objm_Lines
+
+        '''Python sections:
+        'g.header_type(rpt, engine, ev, full_name, start_date, end_date)
+        'g.header_info(engine_name, depth)
+        'g.scoring_desc(engine)
+        'r.key_stats()
+        'g.player_key()
+        'r.player_summary()
+        'g.game_key()
+        'r.game_traces()
 
         WriteReport()
     End Sub
@@ -49,8 +58,9 @@ Friend Module modReport
         If abortReason <> "" Then
             MessageBox.Show(abortReason, "Report Creation Aborted", MessageBoxButton.OK, MessageBoxImage.Exclamation)
         Else
+            'File.WriteAllLines(fileName, objm_Lines)  'TODO: Investigate if this can work, didn't in initial test
             Using writer As New StreamWriter(fileName, False, Encoding.UTF8)
-                For Each line In objl_Lines
+                For Each line In objm_Lines
                     writer.WriteLine(line)
                 Next
             End Using
