@@ -6,19 +6,18 @@ Friend Module modReport
     Public objm_Lines As New List(Of String)
 
     Friend Sub BuildReport()
+        If objm_Lines.Count > 0 Then objm_Lines.Clear()
+
         Dim objl_Info As New clsInfo
         'Dim objl_Detail As New clsDetail
-        'call methods in order to append sections to objm_Lines
 
-        '''Python sections:
-        'g.header_type(rpt, engine, ev, full_name, start_date, end_date)
-        'g.header_info(engine_name, depth)
-        'g.scoring_desc(engine)
-        'r.key_stats()
-        'g.player_key()
-        'r.player_summary()
-        'g.game_key()
-        'r.game_traces()
+        objl_Info.Header()
+        objl_Info.ScoringKey()
+        'objl_Detail.KeyStats()
+        objl_Info.PlayerKey()
+        'objl_Detail.PlayerSummary()
+        objl_Info.GameKey()
+        'objl_Detail.GameTraces()
 
         WriteReport()
     End Sub
@@ -59,7 +58,7 @@ Friend Module modReport
             MessageBox.Show(abortReason, "Report Creation Aborted", MessageBoxButton.OK, MessageBoxImage.Exclamation)
         Else
             'File.WriteAllLines(fileName, objm_Lines)  'TODO: Investigate if this can work, didn't in initial test
-            Using writer As New StreamWriter(fileName, False, Encoding.UTF8)
+            Using writer As New StreamWriter(fileName, False, System.Text.Encoding.UTF8)
                 For Each line In objm_Lines
                     writer.WriteLine(line)
                 Next

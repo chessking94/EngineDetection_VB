@@ -4,7 +4,7 @@ Friend Module modValidation
     Friend Function EventName(pi_EventName As String) As List(Of String)
         Dim rtn_SourceNames As New List(Of String)
 
-        Using objl_CMD As New SqlCommand(EventSources(), MainWindow.db_Connection)
+        Using objl_CMD As New SqlCommand(modQueries.EventSources(), MainWindow.db_Connection)
             objl_CMD.Parameters.AddWithValue("@EventName", pi_EventName)
             With objl_CMD.ExecuteReader
                 While .Read
@@ -19,7 +19,7 @@ Friend Module modValidation
     Friend Function PlayerName(pi_FirstName As String, pi_LastName As String) As List(Of String)
         Dim rtn_SourceNames As New List(Of String)
 
-        Using objl_CMD As New SqlCommand(NameSources(), MainWindow.db_Connection)
+        Using objl_CMD As New SqlCommand(modQueries.NameSources(), MainWindow.db_Connection)
             objl_CMD.Parameters.AddWithValue("@FirstName", pi_FirstName)
             objl_CMD.Parameters.AddWithValue("@LastName", pi_LastName)
             With objl_CMD.ExecuteReader

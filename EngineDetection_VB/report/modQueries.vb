@@ -205,5 +205,19 @@
     Public Function MaxEval() As String
         Return "SELECT Value FROM dbo.Settings WHERE Name = 'Max Eval'"
     End Function
+
+    Public Function EventSummary() As String
+        Return _
+            "
+                SELECT
+                CONVERT(varchar(10), MIN(GameDate), 101) + ' - ' + CONVERT(varchar(10), MAX(GameDate), 101) AS EventDates,
+                MAX(RoundNum) AS Rounds,
+                (COUNT(DISTINCT WhitePlayerID) + COUNT(DISTINCT BlackPlayerID))/2 AS Players
+
+                FROM ChessWarehouse.lake.Games
+
+                WHERE EventID = @EventID
+            "
+    End Function
 #End Region
 End Module
