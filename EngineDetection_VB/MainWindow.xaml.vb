@@ -2,8 +2,7 @@
 Imports System.Reflection
 
 Class MainWindow
-    Private bool_Error As Boolean
-    Private lst_Errors As New List(Of String)
+    Private ErrorReason As String = ""
 
     Public Shared db_Connection As SqlConnection = Utilities_NetCore.ConnectionLocal("ChessWarehouse", Assembly.GetCallingAssembly().GetName().Name)
     Public Shared objl_Parameters As New clsParameters
@@ -45,24 +44,32 @@ Class MainWindow
         tb_EventName.IsEnabled = False
         tb_FirstName.IsEnabled = False
         tb_LastName.IsEnabled = False
+        dp_StartDate.IsEnabled = False
+        dp_EndDate.IsEnabled = False
 
-        Dim objm_Sources As List(Of String)
-        If objl_Parameters.EventName <> "" Then
-            objm_Sources = EventName(objl_Parameters.EventName)
-        Else
-            objm_Sources = PlayerName(objl_Parameters.FirstName, objl_Parameters.LastName)
+        ErrorReason = ""
+        If dp_StartDate.SelectedDate > dp_EndDate.SelectedDate Then
+            ErrorReason = "Start Date is after End Date"
         End If
 
-        bool_Error = False
-        If objm_Sources.Count = 0 Then
-            bool_Error = True
-        Else
-            For Each source As String In objm_Sources
-                cb_SourceName.Items.Add(source)
-            Next
+        If ErrorReason = "" Then
+            Dim objm_Sources As List(Of String)
+            If objl_Parameters.EventName <> "" Then
+                objm_Sources = EventName(objl_Parameters.EventName)
+            Else
+                objm_Sources = PlayerName(objl_Parameters.FirstName, objl_Parameters.LastName)
+            End If
+
+            If objm_Sources.Count = 0 Then
+                ErrorReason = "No sources for provided name found"
+            Else
+                For Each source As String In objm_Sources
+                    cb_SourceName.Items.Add(source)
+                Next
+            End If
         End If
 
-        If Not bool_Error Then
+        If ErrorReason = "" Then
             ToggleSource(Visibility.Visible)
             cb_SourceName.IsEnabled = True
             If cb_SourceName.Items.Count = 1 Then
@@ -74,12 +81,16 @@ Class MainWindow
             tb_EventName.IsEnabled = True
             tb_FirstName.IsEnabled = True
             tb_LastName.IsEnabled = True
-            MessageBox.Show("No sources for provided name found", "Error", MessageBoxButton.OK, MessageBoxImage.Error)
+            dp_StartDate.IsEnabled = True
+            dp_EndDate.IsEnabled = True
+            MessageBox.Show(ErrorReason, "Error", MessageBoxButton.OK, MessageBoxImage.Error)
             If objl_Parameters.EventName <> "" Then
                 tb_EventName.Text = ""
             Else
                 tb_LastName.Text = ""
                 tb_FirstName.Text = ""
+                dp_StartDate.SelectedDate = Nothing
+                dp_EndDate.SelectedDate = Nothing
             End If
         End If
     End Sub
@@ -98,6 +109,8 @@ Class MainWindow
         tb_EventName.Text = ""
         tb_LastName.Text = ""
         tb_FirstName.Text = ""
+        dp_StartDate.SelectedDate = Nothing
+        dp_EndDate.SelectedDate = Nothing
         cb_SourceName.Items.Clear()
         chk_UseCompareStats.IsChecked = False
         cb_CompareSource.Items.Clear()
@@ -175,23 +188,42 @@ Class MainWindow
         If tb_LastName.Text = "" AndAlso tb_FirstName.Text = "" Then
             tb_LastName.Background = Nothing
             tb_FirstName.Background = Nothing
-            btn_ValidateParameters.Visibility = Visibility.Hidden
         ElseIf tb_LastName.Text = "" OrElse tb_FirstName.Text = "" Then
             If tb_LastName.Text = "" Then
-                tb_LastName.Background = NameWarningColor()
+                tb_LastName.Background = WarningColor()
             Else
-                tb_FirstName.Background = NameWarningColor()
+                tb_FirstName.Background = WarningColor()
             End If
-            btn_ValidateParameters.Visibility = Visibility.Hidden
         Else
             tb_LastName.Background = Nothing
             tb_FirstName.Background = Nothing
+        End If
+    End Sub
+
+    Private Sub DatesChanged() Handles dp_StartDate.SelectedDateChanged, dp_EndDate.SelectedDateChanged
+        objl_Parameters.StartDate = dp_StartDate.SelectedDate
+        objl_Parameters.EndDate = dp_EndDate.SelectedDate
+
+        If dp_StartDate.SelectedDate Is Nothing AndAlso dp_EndDate.SelectedDate Is Nothing Then
+            dp_StartDate.Background = Nothing
+            dp_EndDate.Background = Nothing
+            btn_ValidateParameters.Visibility = Visibility.Hidden
+        ElseIf dp_StartDate.SelectedDate Is Nothing OrElse dp_EndDate.SelectedDate Is Nothing Then
+            If dp_StartDate.SelectedDate Is Nothing Then
+                dp_StartDate.Background = WarningColor()
+            Else
+                dp_EndDate.Background = WarningColor()
+            End If
+            btn_ValidateParameters.Visibility = Visibility.Hidden
+        Else
+            dp_StartDate.Background = Nothing
+            dp_EndDate.Background = Nothing
             btn_ValidateParameters.IsEnabled = True
             btn_ValidateParameters.Visibility = Visibility.Visible
         End If
     End Sub
 
-    Private Function NameWarningColor() As SolidColorBrush
+    Private Function WarningColor() As SolidColorBrush
         Dim redValue As Byte = 255
         Dim greenValue As Byte = 192
         Dim blueValue As Byte = 192
@@ -293,6 +325,10 @@ Class MainWindow
         tb_FirstName.Visibility = pi_Visibility
         lab_LastName.Visibility = pi_Visibility
         tb_LastName.Visibility = pi_Visibility
+        lab_StartDate.Visibility = pi_Visibility
+        dp_StartDate.Visibility = pi_Visibility
+        lab_EndDate.Visibility = pi_Visibility
+        dp_EndDate.Visibility = pi_Visibility
     End Sub
 
     Private Sub ToggleSource(pi_Visibility As Visibility)

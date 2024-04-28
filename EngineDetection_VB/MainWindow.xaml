@@ -15,19 +15,23 @@
         <TextBox x:Name="tb_LastName" HorizontalAlignment="Left" Margin="300,63,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <Label x:Name="lab_EventName" Content="Event Name" HorizontalAlignment="Left" Margin="59,59,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="tb_EventName" HorizontalAlignment="Left" Margin="135,63,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="210"/>
-        <Button x:Name="btn_ValidateParameters" Content="Validate Parameters" HorizontalAlignment="Center" Margin="0,100,0,0" VerticalAlignment="Top" Width="136"/>
-        <Label x:Name="lab_SourceName" Content="Source Name" HorizontalAlignment="Left" Margin="140,134,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="cb_SourceName" HorizontalAlignment="Left" Margin="225,138,0,0" VerticalAlignment="Top" Width="120"/>
-        <Separator x:Name="sep_CompareStats" HorizontalAlignment="Center" Margin="0,168,0,0" VerticalAlignment="Top" Height="34" Width="384"/>
-        <CheckBox x:Name="chk_UseCompareStats" Content="Compare With Specific Stats?" HorizontalAlignment="Center" Margin="0,202,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="lab_CompareSourceName" Content="Source Name" HorizontalAlignment="Left" Margin="140,238,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="cb_CompareSource" HorizontalAlignment="Left" Margin="225,240,0,0" VerticalAlignment="Top" Width="120"/>
-        <Label x:Name="lab_CompareTimeControl" Content="Time Control" HorizontalAlignment="Left" Margin="142,278,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="cb_CompareTimeControl" HorizontalAlignment="Left" Margin="225,280,0,0" VerticalAlignment="Top" Width="120"/>
-        <Label x:Name="lab_CompareRatingID" Content="Rating ID" HorizontalAlignment="Left" Margin="161,318,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="cb_CompareRatingID" HorizontalAlignment="Left" Margin="225,320,0,0" VerticalAlignment="Top" Width="120"/>
-        <Label x:Name="lab_CompareScoreName" Content="Score Name" HorizontalAlignment="Left" Margin="146,358,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="cb_CompareScoreName" HorizontalAlignment="Left" Margin="225,360,0,0" VerticalAlignment="Top" Width="120"/>
+        <Label x:Name="lab_StartDate" Content="Start Date" HorizontalAlignment="Left" Margin="49,92,0,0" VerticalAlignment="Top"/>
+        <DatePicker x:Name="dp_StartDate" HorizontalAlignment="Left" Margin="117,94,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lab_EndDate" Content="End Date" HorizontalAlignment="Left" Margin="237,92,0,0" VerticalAlignment="Top"/>
+        <DatePicker x:Name="dp_EndDate" HorizontalAlignment="Left" Margin="300,94,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="btn_ValidateParameters" Content="Validate Parameters" HorizontalAlignment="Center" Margin="0,133,0,0" VerticalAlignment="Top" Width="136"/>
+        <Label x:Name="lab_SourceName" Content="Source Name" HorizontalAlignment="Left" Margin="140,167,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="cb_SourceName" HorizontalAlignment="Left" Margin="225,171,0,0" VerticalAlignment="Top" Width="120"/>
+        <Separator x:Name="sep_CompareStats" HorizontalAlignment="Center" Margin="0,201,0,0" VerticalAlignment="Top" Height="34" Width="384"/>
+        <CheckBox x:Name="chk_UseCompareStats" Content="Compare With Specific Stats?" HorizontalAlignment="Center" Margin="0,235,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="lab_CompareSourceName" Content="Source Name" HorizontalAlignment="Left" Margin="140,271,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="cb_CompareSource" HorizontalAlignment="Left" Margin="225,273,0,0" VerticalAlignment="Top" Width="120"/>
+        <Label x:Name="lab_CompareTimeControl" Content="Time Control" HorizontalAlignment="Left" Margin="142,0,0,0" VerticalAlignment="Center"/>
+        <ComboBox x:Name="cb_CompareTimeControl" HorizontalAlignment="Left" Margin="225,0,0,0" VerticalAlignment="Center" Width="120"/>
+        <Label x:Name="lab_CompareRatingID" Content="Rating ID" HorizontalAlignment="Left" Margin="161,351,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="cb_CompareRatingID" HorizontalAlignment="Left" Margin="225,353,0,0" VerticalAlignment="Top" Width="120"/>
+        <Label x:Name="lab_CompareScoreName" Content="Score Name" HorizontalAlignment="Left" Margin="146,391,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="cb_CompareScoreName" HorizontalAlignment="Left" Margin="225,393,0,0" VerticalAlignment="Top" Width="120"/>
         <Button x:Name="btn_Generate" Content="Generate" Margin="183,510,183,20"/>
     </Grid>
 </Window>

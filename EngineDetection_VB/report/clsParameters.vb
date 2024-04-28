@@ -5,6 +5,8 @@ Public Class clsParameters
     Friend EventName As String
     Friend FirstName As String
     Friend LastName As String
+    Friend StartDate As Date?
+    Friend EndDate As Date?
     Friend SourceName As String
 
     Friend CompareSourceName As String
@@ -24,6 +26,8 @@ Public Class clsParameters
         EventName = ""
         FirstName = ""
         LastName = ""
+        StartDate = Date.MinValue
+        EndDate = Date.MinValue
         SourceName = ""
 
         CompareSourceName = ""
