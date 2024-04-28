@@ -5,7 +5,7 @@ Public Class clsParameters
     Friend EventName As String
     Friend FirstName As String
     Friend LastName As String
-    Friend StartDate As Date?
+    Friend StartDate As Date?  'need these dates to be nullable since they are coming from a DatePicker
     Friend EndDate As Date?
     Friend SourceName As String
 

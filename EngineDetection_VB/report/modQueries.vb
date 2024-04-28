@@ -8,7 +8,8 @@
                 s.SourceName
 
                 FROM dim.Events e
-                JOIN dim.Sources s ON e.SourceID = s.SourceID
+                JOIN dim.Sources s
+                    ON e.SourceID = s.SourceID
 
                 WHERE e.EventName = @EventName
             "
@@ -23,7 +24,8 @@
                 s.SourceName
 
                 FROM dim.Players p
-                JOIN dim.Sources s ON p.SourceID = s.SourceID
+                JOIN dim.Sources s
+                    ON p.SourceID = s.SourceID
 
                 WHERE p.FirstName = @FirstName
                 AND p.LastName = @LastName
@@ -37,7 +39,8 @@
                 s.SourceName
 
                 FROM stat.StatisticsSummary ss
-                JOIN dim.Sources s ON ss.SourceID = s.SourceID
+                JOIN dim.Sources s
+                    ON ss.SourceID = s.SourceID
             "
     End Function
 
@@ -48,8 +51,10 @@
                 tc.TimeControlName
 
                 FROM stat.StatisticsSummary ss
-                JOIN dim.Sources s ON ss.SourceID = s.SourceID                
-                JOIN dim.TimeControls tc ON ss.TimeControlID = tc.TimeControlID                
+                JOIN dim.Sources s
+                    ON ss.SourceID = s.SourceID                
+                JOIN dim.TimeControls tc
+                    ON ss.TimeControlID = tc.TimeControlID                
 
                 WHERE s.SourceName = @SourceName
             "
@@ -62,8 +67,10 @@
                 ss.RatingID
 
                 FROM stat.StatisticsSummary ss
-                JOIN dim.Sources s ON ss.SourceID = s.SourceID
-                JOIN dim.TimeControls tc ON ss.TimeControlID = tc.TimeControlID
+                JOIN dim.Sources s
+                    ON ss.SourceID = s.SourceID
+                JOIN dim.TimeControls tc
+                    ON ss.TimeControlID = tc.TimeControlID
 
                 WHERE s.SourceName = @SourceName
                 AND tc.TimeControlName = @TimeControlName
@@ -110,12 +117,14 @@
     Public Function EventEngine() As String
         Return _
             "
-                SELECT TOP 1
+                SELECT TOP(1)
                 eng.EngineName
 
                 FROM lake.Moves m
-                JOIN lake.Games g ON m.GameID = g.GameID
-                JOIN dim.Engines eng ON m.EngineID = eng.EngineID
+                JOIN lake.Games g
+                    ON m.GameID = g.GameID
+                JOIN dim.Engines eng
+                    ON m.EngineID = eng.EngineID
 
                 WHERE g.EventID = @EventID
 
@@ -130,23 +139,23 @@
     Public Function PlayerEngine() As String
         Return _
             "
-                SELECT
+                SELECT TOP(1)
                 eng.EngineName
 
-                FROM ChessWarehouse.lake.Moves m
-                JOIN ChessWarehouse.lake.Games g
+                FROM lake.Moves m
+                JOIN lake.Games g
 	                ON m.GameID = g.GameID
-                JOIN ChessWarehouse.dim.Colors c
+                JOIN dim.Colors c
 	                ON m.ColorID = c.ColorID
-                JOIN ChessWarehouse.dim.Players wp
+                JOIN dim.Players wp
 	                ON g.WhitePlayerID = wp.PlayerID
-                JOIN ChessWarehouse.dim.Players bp
+                JOIN dim.Players bp
 	                ON g.BlackPlayerID = bp.PlayerID
                 JOIN dim.Engines eng
 	                ON m.EngineID = eng.EngineID
 
                 WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
-                --TODO: Add date parameters
+                AND g.GameDate BETWEEN @StartDate AND @EndDate
 
                 GROUP BY
                 eng.EngineName
@@ -159,11 +168,12 @@
     Public Function EventDepth() As String
         Return _
             "
-                SELECT TOP 1
+                SELECT TOP(1)
                 m.Depth
 
                 FROM lake.Moves m
-                JOIN lake.Games g ON m.GameID = g.GameID
+                JOIN lake.Games g
+                    ON m.GameID = g.GameID
 
                 WHERE g.EventID = @EventID
 
@@ -178,21 +188,22 @@
     Public Function PlayerDepth() As String
         Return _
             "
-                SELECT
+                SELECT TOP(1)
                 m.Depth
 
-                FROM ChessWarehouse.lake.Moves m
-                JOIN ChessWarehouse.lake.Games g
+                FROM lake.Moves m
+                JOIN lake.Games g
 	                ON m.GameID = g.GameID
-                JOIN ChessWarehouse.dim.Colors c
+                JOIN dim.Colors c
 	                ON m.ColorID = c.ColorID
-                JOIN ChessWarehouse.dim.Players wp
+                JOIN dim.Players wp
 	                ON g.WhitePlayerID = wp.PlayerID
-                JOIN ChessWarehouse.dim.Players bp
+                JOIN dim.Players bp
 	                ON g.BlackPlayerID = bp.PlayerID
 
                 WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
                 AND m.IsTablebase = 0
+                AND g.GameDate BETWEEN @StartDate AND @EndDate
 
                 GROUP BY
                 m.Depth
@@ -214,7 +225,7 @@
                 MAX(RoundNum) AS Rounds,
                 (COUNT(DISTINCT WhitePlayerID) + COUNT(DISTINCT BlackPlayerID))/2 AS Players
 
-                FROM ChessWarehouse.lake.Games
+                FROM lake.Games
 
                 WHERE EventID = @EventID
             "

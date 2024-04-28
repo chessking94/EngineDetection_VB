@@ -26,7 +26,8 @@ Public Class clsInfo
         Else
             Using objl_CMD As New SqlCommand(modQueries.PlayerEngine(), MainWindow.db_Connection)
                 objl_CMD.Parameters.AddWithValue("@PlayerID", pi_params.PlayerID)
-                'TODO: Add date parameters
+                objl_CMD.Parameters.AddWithValue("@StartDate", pi_params.StartDate)
+                objl_CMD.Parameters.AddWithValue("@EndDate", pi_params.EndDate)
                 rtnval = Convert.ToString(objl_CMD.ExecuteScalar())
             End Using
         End If
@@ -45,7 +46,8 @@ Public Class clsInfo
         Else
             Using objl_CMD As New SqlCommand(modQueries.PlayerDepth(), MainWindow.db_Connection)
                 objl_CMD.Parameters.AddWithValue("@PlayerID", pi_params.PlayerID)
-                'TODO: Add date parameters
+                objl_CMD.Parameters.AddWithValue("@StartDate", pi_params.StartDate)
+                objl_CMD.Parameters.AddWithValue("@EndDate", pi_params.EndDate)
                 rtnval = Convert.ToInt16(objl_CMD.ExecuteScalar())
             End Using
         End If
@@ -112,7 +114,7 @@ Public Class clsInfo
 
     Private Sub PlayerDetails()
         objm_Lines.Add("Player Name:".PadRight(HeaderLength, " "c) & $"{params.FirstName} {params.LastName}")
-        objm_Lines.Add("Games Between:".PadRight(HeaderLength, " "c) & "PENDING DEVELOPMENT")  'TODO: Integrate date range for ReportType = Player
+        objm_Lines.Add("Games Between:".PadRight(HeaderLength, " "c) & Convert.ToDateTime(params.StartDate).ToString("MM/dd/yyyy") & " - " & Convert.ToDateTime(params.EndDate).ToString("MM/dd/yyyy"))
         objm_Lines.Add("")
     End Sub
 
