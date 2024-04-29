@@ -82,7 +82,7 @@ Public Class clsInfo
     Private Sub ComparisonVariables()
         objm_Lines.Add(New String("-", 100))
         objm_Lines.Add("Analysis Type:".PadRight(HeaderLength, " "c) & params.ReportType)
-        objm_Lines.Add("Compared Source:".PadRight(HeaderLength, " "c) & params.CompareSourceName)  'TODO: how do Compare* variables populate if no comparison data is chosen?
+        objm_Lines.Add("Compared Source:".PadRight(HeaderLength, " "c) & params.CompareSourceName)
         objm_Lines.Add("Compared Time Control:".PadRight(HeaderLength, " "c) & params.CompareTimeControl)
         objm_Lines.Add("Compared Rating:".PadRight(HeaderLength, " "c) & params.CompareRatingID)
         objm_Lines.Add("Scoring Method Used:".PadRight(HeaderLength, " "c) & params.CompareScoreName)

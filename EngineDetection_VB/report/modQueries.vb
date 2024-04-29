@@ -80,7 +80,7 @@
     End Function
 #End Region
 
-#Region "ID's"
+#Region "Parameters"
     Public Function SourceID() As String
         Return "SELECT SourceID FROM dim.Sources WHERE SourceName = @SourceName"
     End Function
@@ -109,6 +109,38 @@
                 WHERE p.FirstName = @FirstName
                 AND p.LastName = @LastName
                 AND s.SourceName = @SourceName
+            "
+    End Function
+
+    Public Function EventAvgRating() As String
+        Return "SELECT ROUND(AVG((WhiteElo + BlackElo)/2), 0) AS AvgGameRating FROM lake.Games WHERE EventID = @EventID"
+    End Function
+
+    Public Function PlayerAvgRating() As String
+        Return _
+            "
+                SELECT
+                AVG(r.Elo) AS Elo
+
+                FROM (
+                    SELECT
+                    NULLIF(NULLIF(WhiteElo, ''), 0) AS Elo
+
+                    FROM lake.Games
+
+                    WHERE WhitePlayerID = @PlayerID
+                    AND GameDate BETWEEN @StartDate AND @EndDate
+
+                    UNION ALL
+
+                    SELECT
+                    NULLIF(NULLIF(BlackElo, ''), 0) AS Elo
+
+                    FROM lake.Games
+
+                    WHERE BlackPlayerID = @PlayerID
+                    AND GameDate BETWEEN @StartDate AND @EndDate
+                ) r
             "
     End Function
 #End Region

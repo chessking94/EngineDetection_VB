@@ -1,4 +1,5 @@
 ﻿Imports Microsoft.Data.SqlClient
+Imports Microsoft.Identity.Client.NativeInterop
 
 Public Class clsParameters
     Friend ReportType As String
@@ -9,10 +10,11 @@ Public Class clsParameters
     Friend EndDate As Date?
     Friend SourceName As String
 
-    Friend CompareSourceName As String
-    Friend CompareTimeControl As String
+    'set the Compare* variables to defaults
+    Friend CompareSourceName As String = "Control"
+    Friend CompareTimeControl As String = "Classical"
     Friend CompareRatingID As Short = -1
-    Friend CompareScoreName As String
+    Friend CompareScoreName As String = "WinProbabilityLost"
 
     Friend EventID As Long = 0
     Friend PlayerID As Long = 0
@@ -22,34 +24,29 @@ Public Class clsParameters
     Friend CompareScoreID As Short = 0
 
     Friend Sub ClearVariables()
+        'reset everything to the default values
         ReportType = ""
         EventName = ""
         FirstName = ""
         LastName = ""
-        StartDate = Date.MinValue
-        EndDate = Date.MinValue
+        StartDate = Nothing
+        EndDate = Nothing
         SourceName = ""
-
-        CompareSourceName = ""
-        CompareTimeControl = ""
-        CompareRatingID = -1
-        CompareScoreName = ""
 
         EventID = 0
         PlayerID = 0
         SourceID = 0
-        CompareSourceID = 0
-        CompareTimeControl = 0
-        CompareScoreID = 0
+
+        ClearCompareVariables()
     End Sub
 
     Friend Sub ClearCompareVariables()
-        CompareSourceName = ""
-        CompareTimeControl = ""
+        CompareSourceName = "Control"
+        CompareTimeControl = "Classical"
         CompareRatingID = -1
-        CompareScoreName = ""
+        CompareScoreName = "WinProbabilityLost"
         CompareSourceID = 0
-        CompareTimeControl = 0
+        CompareTimeControlID = 0
         CompareScoreID = 0
     End Sub
 
@@ -63,12 +60,34 @@ Public Class clsParameters
 
         SourceID = GetSourceID(SourceName)
 
-        If CompareSourceName <> "" Then
+        If CompareRatingID = -1 Then
+            CompareRatingID = GetDefaultRatingID()
+        Else
             CompareSourceID = GetSourceID(CompareSourceName)
             CompareTimeControlID = GetTimeControlID(CompareTimeControl)
             CompareScoreID = GetScoreID(CompareScoreName)
         End If
     End Sub
+
+    Private Function GetDefaultRatingID() As Short
+        Dim rtnval As Long
+        Select Case ReportType
+            Case "Event"
+                Using objl_CMD As New SqlCommand(modQueries.EventAvgRating(), MainWindow.db_Connection)
+                    objl_CMD.Parameters.AddWithValue("@EventID", EventID)
+                    rtnval = Convert.ToInt64(objl_CMD.ExecuteScalar())
+                End Using
+            Case "Player"
+                Using objl_CMD As New SqlCommand(modQueries.PlayerAvgRating(), MainWindow.db_Connection)
+                    objl_CMD.Parameters.AddWithValue("@PlayerID", PlayerID)
+                    objl_CMD.Parameters.AddWithValue("@StartDate", StartDate)
+                    objl_CMD.Parameters.AddWithValue("@EndDate", EndDate)
+                    rtnval = Convert.ToInt64(objl_CMD.ExecuteScalar())
+                End Using
+        End Select
+
+        Return Math.Floor(rtnval / 100) * 100
+    End Function
 
 #Region "ID Functions"
     Private Function GetEventID(pi_EventName As String) As Long

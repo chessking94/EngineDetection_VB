@@ -34,6 +34,10 @@ Friend Module modReport
                 reportName = $"{params.ReportType}_{params.FirstName} {params.LastName}.txt"
         End Select
 
+        'remove bad characters from file name
+        Dim removeCharacters As New List(Of Char) From {"\", "/", "<", ">", ":", """", "|", "?", "*"}
+        reportName = Utilities_NetCore.RemoveCharacters(reportName, removeCharacters)
+
         If Not Directory.Exists(outputDir) Then
             Directory.CreateDirectory(outputDir)
         End If
