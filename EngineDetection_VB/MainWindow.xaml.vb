@@ -120,6 +120,8 @@ Class MainWindow
         tb_EventName.IsEnabled = True
         tb_FirstName.IsEnabled = True
         tb_LastName.IsEnabled = True
+        dp_StartDate.IsEnabled = True
+        dp_EndDate.IsEnabled = True
 
         objl_Parameters.ReportType = cb_ReportType.SelectedValue
         If cb_ReportType.SelectedIndex >= 0 Then

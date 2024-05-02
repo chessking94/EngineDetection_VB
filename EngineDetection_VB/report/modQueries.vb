@@ -263,4 +263,270 @@
             "
     End Function
 #End Region
+
+#Region "Detail"
+#Region "Event Detail"
+    Public Function EventRatings() As String
+        Return _
+            "
+                SELECT
+                ROUND(AVG((WhiteElo + BlackElo)/2), 0) AS AvgRating,
+                ROUND(MIN((WhiteElo + BlackElo)/2), 0) AS MinRating,
+                ROUND(MAX((WhiteElo + BlackElo)/2), 0) AS MaxRating
+
+                FROM lake.Games
+
+                WHERE EventID = @EventID
+            "
+    End Function
+
+    Public Function EventMoveCounts() As String
+        Return _
+            "
+                SELECT
+                COUNT(m.MoveNumber) AS TotalMoves,
+                SUM(CAST(m.MoveScored AS tinyint)) AS ScoredMoves
+
+                FROM lake.Moves m
+                JOIN lake.Games g
+                    ON m.GameID = g.GameID
+
+                WHERE g.EventID = @EventID
+            "
+    End Function
+
+    Public Function EventTraces() As String
+        Return _
+            "
+                SELECT
+                t.TraceKey,
+                t.TraceDescription,
+                COUNT(m.MoveNumber) AS MoveCount
+
+                FROM lake.Moves m
+                JOIN lake.Games g
+                    ON m.GameID = g.GameID
+                JOIN dim.Traces t
+                    ON m.TraceKey = t.TraceKey
+
+                WHERE g.EventID = @EventID
+                AND t.TraceKey NOT IN ('0', 'M')
+
+                GROUP BY
+                t.TraceKey,
+                t.TraceDescription
+
+                ORDER BY
+                MoveCount DESC
+            "
+    End Function
+
+    Public Function EventBaseStats() As String
+        Return _
+            "
+                SELECT
+                SUM(CASE WHEN m.Move_Rank <= 1 THEN 1 ELSE 0 END) AS T1,
+                SUM(CASE WHEN m.Move_Rank <= 2 THEN 1 ELSE 0 END) AS T2,
+                SUM(CASE WHEN m.Move_Rank <= 3 THEN 1 ELSE 0 END) AS T3,
+                SUM(CASE WHEN m.Move_Rank <= 4 THEN 1 ELSE 0 END) AS T4,
+                SUM(CASE WHEN m.Move_Rank <= 5 THEN 1 ELSE 0 END) AS T5,
+                AVG(m.ScACPL) AS ACPL,
+                ISNULL(STDEV(m.ScACPL), 0) AS SDCPL,
+                SUM(CASE WHEN m.CP_Loss > 2 THEN 1 ELSE 0 END) AS Blunders
+
+                FROM lake.Moves m
+                JOIN lake.Games g
+                    ON m.GameID = g.GameID
+                JOIN dim.Colors c
+                    ON m.ColorID = c.ColorID
+
+                WHERE g.EventID = @EventID
+                AND m.MoveScored = 1
+            "
+    End Function
+
+    Public Function EventTotalScore() As String
+        Return _
+            "
+                SELECT
+                CASE
+                    WHEN ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100) > 100 THEN 100
+                    ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
+                END AS Score
+
+                FROM lake.Moves m
+                JOIN stat.MoveScores ms
+                    ON m.GameID = ms.GameID
+                    AND m.MoveNumber = ms.MoveNumber
+                    AND m.ColorID = ms.ColorID
+                JOIN lake.Games g
+                    ON m.GameID = g.GameID
+
+                WHERE g.EventID = @EventID
+                AND ms.ScoreID = @ScoreID
+                AND m.MoveScored = 1
+            "
+    End Function
+#End Region
+
+#Region "Player Detail"
+    Public Function PlayerRatings() As String
+        Return _
+            "
+                SELECT
+                AVG(r.OppElo) AS AvgRating,
+                MIN(r.OppElo) AS MinRating,
+                MAX(r.OppElo) AS MaxRating
+
+                FROM (
+                    SELECT
+                    NULLIF(NULLIF(WhiteElo, ''), 0) AS Elo,
+                    NULLIF(NULLIF(BlackElo, ''), 0) AS OppElo
+
+                    FROM lake.Games
+
+                    WHERE WhitePlayerID = @PlayerID
+                    AND GameDate BETWEEN @StartDate AND @EndDate
+
+                    UNION ALL
+
+                    SELECT
+                    NULLIF(NULLIF(BlackElo, ''), 0) AS Elo,
+                    NULLIF(NULLIF(WhiteElo, ''), 0) AS OppElo
+
+                    FROM lake.Games
+
+                    WHERE BlackPlayerID = @PlayerID
+                    AND GameDate BETWEEN @StartDate AND @EndDate
+                ) r
+            "
+    End Function
+
+    Public Function PlayerMoveCounts() As String
+        Return _
+            "
+                SELECT
+                COUNT(m.MoveNumber) AS TotalMoves,
+                SUM(CAST(m.MoveScored AS tinyint)) AS ScoredMoves
+
+                FROM lake.Moves m
+                JOIN lake.Games g
+                    ON m.GameID = g.GameID
+                JOIN dim.Colors c
+                    ON m.ColorID = c.ColorID
+
+                WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
+                AND g.GameDate BETWEEN @StartDate AND @EndDate
+            "
+    End Function
+
+    Public Function PlayerTraces() As String
+        Return _
+            "
+                SELECT
+                t.TraceDescription,
+                COUNT(m.MoveNumber) AS MoveCount
+
+                FROM lake.Moves m
+                JOIN lake.Games g
+                    ON m.GameID = g.GameID
+                JOIN dim.Traces t
+                    ON m.TraceKey = t.TraceKey
+                JOIN dim.Colors c
+                    ON m.ColorID = c.ColorID
+
+                WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
+                AND g.GameDate BETWEEN @StartDate AND @EndDate
+                AND t.TraceKey NOT IN ('0', 'M')
+
+                GROUP BY
+                t.TraceDescription
+
+                ORDER BY
+                COUNT(m.MoveNumber) DESC
+            "
+    End Function
+
+    Public Function PlayerBaseStats() As String
+        Return _
+            "
+                SELECT
+                SUM(CASE WHEN m.Move_Rank <= 1 THEN 1 ELSE 0 END) AS T1,
+                SUM(CASE WHEN m.Move_Rank <= 2 THEN 1 ELSE 0 END) AS T2,
+                SUM(CASE WHEN m.Move_Rank <= 3 THEN 1 ELSE 0 END) AS T3,
+                SUM(CASE WHEN m.Move_Rank <= 4 THEN 1 ELSE 0 END) AS T4,
+                SUM(CASE WHEN m.Move_Rank <= 5 THEN 1 ELSE 0 END) AS T5,
+                AVG(m.ScACPL) AS ACPL,
+                ISNULL(STDEV(m.ScACPL), 0) AS SDCPL,
+                SUM(CASE WHEN m.CP_Loss > 2 THEN 1 ELSE 0 END) AS Blunders
+
+                FROM lake.Moves m
+                JOIN lake.Games g
+                    ON m.GameID = g.GameID
+                JOIN dim.Colors c
+                    ON m.ColorID = c.ColorID
+
+                WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
+                AND g.GameDate BETWEEN @StartDate AND @EndDate
+                AND m.MoveScored = 1
+            "
+    End Function
+
+    Public Function PlayerTotalScore() As String
+        Return _
+            "
+                SELECT
+                CASE
+                    WHEN ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100) > 100 THEN 100
+                    ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
+                END AS Score
+
+                FROM lake.Moves m
+                JOIN stat.MoveScores ms
+                    ON m.GameID = ms.GameID
+                    AND m.MoveNumber = ms.MoveNumber
+                    AND m.ColorID = ms.ColorID
+                JOIN lake.Games g
+                    ON m.GameID = g.GameID
+                JOIN dim.Colors c
+                    ON m.ColorID = c.ColorID
+
+                WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
+                AND g.GameDate BETWEEN @StartDate AND @EndDate
+                AND ms.ScoreID = @ScoreID
+                AND m.MoveScored = 1
+            "
+    End Function
+#End Region
+
+#Region "Other Detail"
+    Public Function ZScoreData(Optional ColorID As Short = 0) As String
+        Dim qry As String =
+            "
+SELECT
+ms.MeasurementName,
+ss.Average,
+ss.StandardDeviation
+
+FROM stat.StatisticsSummary ss
+JOIN dim.Aggregations agg
+    ON ss.AggregationID = agg.AggregationID
+JOIN dim.Measurements ms
+    ON ss.MeasurementID = ms.MeasurementID
+LEFT JOIN dim.Colors c
+    ON ss.ColorID = c.ColorID
+
+WHERE agg.AggregationName = @AggregationName
+AND ms.MeasurementName IN ('T1', 'ScACPL', @ScoreName)
+AND ss.SourceID = @SourceID
+AND ss.TimeControlID = @TimeControlID
+AND ss.RatingID = @RatingID
+            "
+
+        If ColorID > 0 Then qry += $"AND c.ColorID = {ColorID}"
+
+        Return qry
+    End Function
+#End Region
+#End Region
 End Module

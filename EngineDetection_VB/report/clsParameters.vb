@@ -1,5 +1,4 @@
 ﻿Imports Microsoft.Data.SqlClient
-Imports Microsoft.Identity.Client.NativeInterop
 
 Public Class clsParameters
     Friend ReportType As String

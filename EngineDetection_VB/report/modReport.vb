@@ -9,11 +9,11 @@ Friend Module modReport
         If objm_Lines.Count > 0 Then objm_Lines.Clear()
 
         Dim objl_Info As New clsInfo
-        'Dim objl_Detail As New clsDetail
+        Dim objl_Detail As New clsDetail
 
         objl_Info.Header()
         objl_Info.ScoringKey()
-        'objl_Detail.KeyStats()
+        objl_Detail.KeyStats()
         objl_Info.PlayerKey()
         'objl_Detail.PlayerSummary()
         objl_Info.GameKey()
