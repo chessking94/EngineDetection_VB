@@ -18,12 +18,6 @@ Public Class clsDetail
         Dim stats As New _keystats With {
             .objl_Parameters = params
         }
-        '.ReportType = params.ReportType,
-        '.EventID = params.EventID,
-        '.PlayerID = params.PlayerID,
-        '.StartDate = params.StartDate,
-        '.EndDate = params.EndDate,
-        '.ScoreID = params.CompareScoreID
         stats.Build()
 
         'rating summary
@@ -52,7 +46,7 @@ Public Class clsDetail
 
         'advanced stats
         objm_Lines.Add("Score:".PadRight(EventLength, " "c) & stats.Score.ToString("0.00"))  'TODO: Add the asterisk when needed
-        objm_Lines.Add("ROI:".PadRight(EventLength, " "c) & stats.ROI.ToString("0.0"))
+        objm_Lines.Add("ROI:".PadRight(EventLength, " "c) & stats.ROI.ToString("0.0"))  'TODO: Add the asterisk when needed
         objm_Lines.Add("PValue:".PadRight(EventLength, " "c) & $"{stats.PValue:0.00}%")
         objm_Lines.Add("")
         objm_Lines.Add("")
@@ -60,13 +54,6 @@ Public Class clsDetail
 
     Private Class _keystats
         Friend Property objl_Parameters As clsParameters
-        'Friend Property ReportType As String
-        'Friend Property EventID As Long
-        'Friend Property PlayerID As Long
-        'Friend Property StartDate As Date
-        'Friend Property EndDate As Date
-        'Friend Property ScoreID As Short
-
         Friend Property AvgRating As Short
         Friend Property MinRating As Short
         Friend Property MaxRating As Short
@@ -96,13 +83,13 @@ Public Class clsDetail
                     With objl_CMD
                         .Connection = MainWindow.db_Connection
                         .CommandText = modQueries.EventRatings()
-                        .Parameters.AddWithValue("@EventID", EventID)
+                        .Parameters.AddWithValue("@EventID", objl_Parameters.EventID)
                     End With
                 Case "Player"
                     With objl_CMD
                         .Connection = MainWindow.db_Connection
                         .CommandText = modQueries.PlayerRatings()
-                        .Parameters.AddWithValue("@PlayerID", PlayerID)
+                        .Parameters.AddWithValue("@PlayerID", objl_Parameters.PlayerID)
                         .Parameters.AddWithValue("@StartDate", objl_Parameters.StartDate)
                         .Parameters.AddWithValue("@EndDate", objl_Parameters.EndDate)
                     End With
@@ -237,7 +224,6 @@ Public Class clsDetail
             End With
 
             'ROI
-            ROI = 0
             With objl_CMD
                 .Parameters.Clear()
                 .CommandText = modQueries.ZScoreData()
@@ -254,23 +240,192 @@ Public Class clsDetail
                     Dim z_score As New Double
                     Select Case .Item("MeasurementName")
                         Case "T1"
-                            z_score = 0  'TODO
+                            z_score = ((Convert.ToDouble(TCounts("T1")) / TotalMoves) - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
                             objm_z.Add("T1", z_score)
                         Case "ScACPL"
-                            z_score = 0  'TODO
+                            z_score = -1 * (ACPL - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
                             objm_z.Add("ScACPL", z_score)
                         Case Else
                             'all possible score measurement names
-                            z_score = 0  'TODO
+                            z_score = (Score - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
                             objm_z.Add("Score", z_score)
                     End Select
-                    ROI = .Item("Score")
+                    ROI = CalculateROI(objm_z)
                 End While
                 .Close()
             End With
 
             'PValue
-            PValue = 0
+            Dim testStatistic As Double() = {Convert.ToDouble(TCounts("T1")) / TotalMoves, ACPL, Score}
+
+            Dim t1Average As Double = 0
+            With objl_CMD
+                .Parameters.Clear()
+                .CommandText = modQueries.GetStatAverage()
+                .Parameters.AddWithValue("@SourceID", 3)  'hard-coding sourceID since Lichess doesn't have event stats
+                .Parameters.AddWithValue("AggregationName", "Event")  'since this value is inclusive of multiple games, it should always be compared against Event
+                .Parameters.AddWithValue("@RatingID", objl_Parameters.CompareRatingID)
+                .Parameters.AddWithValue("@TimeControlID", objl_Parameters.CompareTimeControlID)
+                .Parameters.AddWithValue("@ColorID", 0)
+                .Parameters.AddWithValue("@EvaluationGroupID", 0)
+                .Parameters.AddWithValue("@MeasurementName", "T1")
+                t1Average = Convert.ToDouble(objl_CMD.ExecuteScalar())
+            End With
+
+            Dim t1Variance As Double = 0
+            With objl_CMD
+                .Parameters.Clear()
+                .CommandText = modQueries.GetStatCovar()
+                .Parameters.AddWithValue("@SourceID", 3)
+                .Parameters.AddWithValue("AggregationName", "Event")
+                .Parameters.AddWithValue("@RatingID", objl_Parameters.CompareRatingID)
+                .Parameters.AddWithValue("@TimeControlID", objl_Parameters.CompareTimeControlID)
+                .Parameters.AddWithValue("@ColorID", 0)
+                .Parameters.AddWithValue("@EvaluationGroupID", 0)
+                .Parameters.AddWithValue("@MeasurementName1", "T1")
+                .Parameters.AddWithValue("@MeasurementName2", "T1")
+                t1Variance = Convert.ToDouble(objl_CMD.ExecuteScalar())
+            End With
+
+            Dim cplAverage As Double = 0
+            With objl_CMD
+                .Parameters.Clear()
+                .CommandText = modQueries.GetStatAverage()
+                .Parameters.AddWithValue("@SourceID", 3)
+                .Parameters.AddWithValue("AggregationName", "Event")
+                .Parameters.AddWithValue("@RatingID", objl_Parameters.CompareRatingID)
+                .Parameters.AddWithValue("@TimeControlID", objl_Parameters.CompareTimeControlID)
+                .Parameters.AddWithValue("@ColorID", 0)
+                .Parameters.AddWithValue("@EvaluationGroupID", 0)
+                .Parameters.AddWithValue("@MeasurementName", "ScACPL")
+                cplAverage = Convert.ToDouble(objl_CMD.ExecuteScalar())
+            End With
+
+            Dim cplVariance As Double = 0
+            With objl_CMD
+                .Parameters.Clear()
+                .CommandText = modQueries.GetStatCovar()
+                .Parameters.AddWithValue("@SourceID", 3)
+                .Parameters.AddWithValue("AggregationName", "Event")
+                .Parameters.AddWithValue("@RatingID", objl_Parameters.CompareRatingID)
+                .Parameters.AddWithValue("@TimeControlID", objl_Parameters.CompareTimeControlID)
+                .Parameters.AddWithValue("@ColorID", 0)
+                .Parameters.AddWithValue("@EvaluationGroupID", 0)
+                .Parameters.AddWithValue("@MeasurementName1", "ScACPL")
+                .Parameters.AddWithValue("@MeasurementName2", "ScACPL")
+                cplVariance = Convert.ToDouble(objl_CMD.ExecuteScalar())
+            End With
+
+            Dim scoreAverage As Double = 0
+            With objl_CMD
+                .Parameters.Clear()
+                .CommandText = modQueries.GetStatAverage()
+                .Parameters.AddWithValue("@SourceID", 3)
+                .Parameters.AddWithValue("AggregationName", "Event")
+                .Parameters.AddWithValue("@RatingID", objl_Parameters.CompareRatingID)
+                .Parameters.AddWithValue("@TimeControlID", objl_Parameters.CompareTimeControlID)
+                .Parameters.AddWithValue("@ColorID", 0)
+                .Parameters.AddWithValue("@EvaluationGroupID", 0)
+                .Parameters.AddWithValue("@MeasurementName", objl_Parameters.CompareScoreName)
+                scoreAverage = Convert.ToDouble(objl_CMD.ExecuteScalar())
+            End With
+
+            Dim scoreVariance As Double = 0
+            With objl_CMD
+                .Parameters.Clear()
+                .CommandText = modQueries.GetStatCovar()
+                .Parameters.AddWithValue("@SourceID", 3)
+                .Parameters.AddWithValue("AggregationName", "Event")
+                .Parameters.AddWithValue("@RatingID", objl_Parameters.CompareRatingID)
+                .Parameters.AddWithValue("@TimeControlID", objl_Parameters.CompareTimeControlID)
+                .Parameters.AddWithValue("@ColorID", 0)
+                .Parameters.AddWithValue("@EvaluationGroupID", 0)
+                .Parameters.AddWithValue("@MeasurementName1", objl_Parameters.CompareScoreName)
+                .Parameters.AddWithValue("@MeasurementName2", objl_Parameters.CompareScoreName)
+                scoreVariance = Convert.ToDouble(objl_CMD.ExecuteScalar())
+            End With
+
+            Dim t1cplCovariance As Double = 0
+            With objl_CMD
+                .Parameters.Clear()
+                .CommandText = modQueries.GetStatCovar()
+                .Parameters.AddWithValue("@SourceID", 3)
+                .Parameters.AddWithValue("AggregationName", "Event")
+                .Parameters.AddWithValue("@RatingID", objl_Parameters.CompareRatingID)
+                .Parameters.AddWithValue("@TimeControlID", objl_Parameters.CompareTimeControlID)
+                .Parameters.AddWithValue("@ColorID", 0)
+                .Parameters.AddWithValue("@EvaluationGroupID", 0)
+                .Parameters.AddWithValue("@MeasurementName1", "T1")
+                .Parameters.AddWithValue("@MeasurementName2", "ScACPL")
+                t1cplCovariance = Convert.ToDouble(objl_CMD.ExecuteScalar())
+            End With
+
+            Dim t1scoreCovariance As Double = 0
+            With objl_CMD
+                .Parameters.Clear()
+                .CommandText = modQueries.GetStatCovar()
+                .Parameters.AddWithValue("@SourceID", 3)
+                .Parameters.AddWithValue("AggregationName", "Event")
+                .Parameters.AddWithValue("@RatingID", objl_Parameters.CompareRatingID)
+                .Parameters.AddWithValue("@TimeControlID", objl_Parameters.CompareTimeControlID)
+                .Parameters.AddWithValue("@ColorID", 0)
+                .Parameters.AddWithValue("@EvaluationGroupID", 0)
+                .Parameters.AddWithValue("@MeasurementName1", "T1")
+                .Parameters.AddWithValue("@MeasurementName2", "Score")
+                t1scoreCovariance = Convert.ToDouble(objl_CMD.ExecuteScalar())
+            End With
+
+            Dim cplscoreCovariance As Double = 0
+            With objl_CMD
+                .Parameters.Clear()
+                .CommandText = modQueries.GetStatCovar()
+                .Parameters.AddWithValue("@SourceID", 3)
+                .Parameters.AddWithValue("AggregationName", "Event")
+                .Parameters.AddWithValue("@RatingID", objl_Parameters.CompareRatingID)
+                .Parameters.AddWithValue("@TimeControlID", objl_Parameters.CompareTimeControlID)
+                .Parameters.AddWithValue("@ColorID", 0)
+                .Parameters.AddWithValue("@EvaluationGroupID", 0)
+                .Parameters.AddWithValue("@MeasurementName1", "ScACPL")
+                .Parameters.AddWithValue("@MeasurementName2", "Score")
+                cplscoreCovariance = Convert.ToDouble(objl_CMD.ExecuteScalar())
+            End With
+
+            Dim means As Double() = {t1Average, cplAverage, scoreAverage}
+
+            Dim covarianceMatrix As Double(,) = {
+                {t1Variance, t1cplCovariance, t1scoreCovariance},
+                {t1cplCovariance, cplVariance, cplscoreCovariance},
+                {t1scoreCovariance, cplscoreCovariance, scoreVariance}
+            }
+
+            Dim mahalanobis As Double = Utilities_NetCore.MahalanobisDistance(testStatistic, means, covarianceMatrix)
+            PValue = mahalanobis
+
+            'TODO: Convert to actual PValue
         End Sub
+
+        Private Function CalculateROI(pi_zscores As Dictionary(Of String, Double)) As Double
+            Dim weights As New Dictionary(Of String, Double) From {
+                {"T1", 0.2},
+                {"ScACPL", 0.35},
+                {"Score", 0.45}
+            }
+
+            Dim dotproduct As Double = 0
+            For Each kvp As KeyValuePair(Of String, Double) In pi_zscores
+                dotproduct += kvp.Value * weights(kvp.Key)
+            Next
+
+            Dim sumsquaresroot As Double = 0
+            For Each kvp As KeyValuePair(Of String, Double) In weights
+                sumsquaresroot += Math.Pow(kvp.Value, 2)
+            Next
+            sumsquaresroot = Math.Sqrt(sumsquaresroot)
+
+            Dim z As Double = dotproduct / sumsquaresroot
+            Dim roi As Double = 5 * z + 50
+
+            Return roi
+        End Function
     End Class
 End Class

@@ -527,6 +527,53 @@ AND ss.RatingID = @RatingID
 
         Return qry
     End Function
+
+    Public Function GetStatAverage() As String
+        Return _
+            "
+                SELECT
+                ss.Average
+
+                FROM stat.StatisticsSummary ss
+                JOIN dim.Measurements m
+                    ON ss.MeasurementID = m.MeasurementID
+                JOIN dim.Aggregations agg
+                    ON ss.AggregationID = agg.AggregationID
+
+                WHERE ss.SourceID = @SourceID
+                AND agg.AggregationName = @AggregationName
+                AND ss.RatingID = @RatingID
+                AND ss.TimeControlID = @TimeControlID
+                AND ss.ColorID = @ColorID
+                AND ss.EvaluationGroupID = @EvaluationGroupID
+                AND m.MeasurementName = @MeasurementName
+            "
+    End Function
+
+    Public Function GetStatCovar() As String
+        Return _
+            "
+                SELECT
+                cv.Covariance
+
+                FROM stat.Covariances cv
+                JOIN dim.Aggregations agg
+                    ON cv.AggregationID = agg.AggregationID
+                JOIN dim.Measurements m1
+                    ON cv.MeasurementID1 = m1.MeasurementID
+                JOIN dim.Measurements m2
+                    ON cv.MeasurementID2 = m2.MeasurementID
+
+                WHERE cv.SourceID = @SourceID
+                AND agg.AggregationName = @AggregationName
+                AND cv.RatingID = @RatingID
+                AND cv.TimeControlID = @TimeControlID
+                AND cv.ColorID = @ColorID
+                AND cv.EvaluationGroupID = @EvaluationGroupID
+                AND m1.MeasurementName = @MeasurementName1
+                AND m2.MeasurementName = @MeasurementName2
+            "
+    End Function
 #End Region
 #End Region
 End Module
