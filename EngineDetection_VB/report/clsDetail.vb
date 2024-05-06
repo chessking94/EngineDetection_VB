@@ -1,11 +1,12 @@
 ﻿Imports Microsoft.Data.SqlClient
+Imports MathNet.Numerics.Distributions
 
 Public Class clsDetail
     Private ReadOnly params As clsParameters = MainWindow.objl_Parameters
     Private Const EventLength As Short = 35
 
+#Region "Key Stats"
     Friend Sub KeyStats()
-        'should this be turned into a sub-class or something?
         Select Case params.ReportType
             Case "Event"
                 objm_Lines.Add("WHOLE-EVENT STATISTICS:")
@@ -31,6 +32,7 @@ Public Class clsDetail
         objm_Lines.Add(tempText.PadRight(EventLength, " "c) & $"{stats.AvgRating}; min {stats.MinRating}, max {stats.MaxRating}")
 
         'trace summary
+        objm_Lines.Add("Scored Moves:".PadRight(EventLength, " "c) & $"{stats.ScoredMoves} / {stats.TotalMoves} = {Convert.ToDouble(100 * stats.ScoredMoves / stats.TotalMoves):0.00}%")
         For Each kvp As KeyValuePair(Of String, Short) In stats.TraceCounts
             objm_Lines.Add($"{kvp.Key}:".PadRight(EventLength, " "c) & $"{kvp.Value} / {stats.TotalMoves} = {Convert.ToDouble(100 * kvp.Value / stats.TotalMoves):0.00}%")
         Next
@@ -45,9 +47,10 @@ Public Class clsDetail
         objm_Lines.Add("ScSDCPL:".PadRight(EventLength, " "c) & stats.SDCPL.ToString("0.0000"))
 
         'advanced stats
-        objm_Lines.Add("Score:".PadRight(EventLength, " "c) & stats.Score.ToString("0.00"))  'TODO: Add the asterisk when needed
-        objm_Lines.Add("ROI:".PadRight(EventLength, " "c) & stats.ROI.ToString("0.0"))  'TODO: Add the asterisk when needed
-        objm_Lines.Add("PValue:".PadRight(EventLength, " "c) & $"{stats.PValue:0.00}%")
+        'TODO: Add the asterisks to each of these when needed
+        objm_Lines.Add("Score:".PadRight(EventLength, " "c) & stats.Score.ToString("0.00"))
+        objm_Lines.Add("ROI:".PadRight(EventLength, " "c) & stats.ROI.ToString("0.0"))
+        objm_Lines.Add("PValue:".PadRight(EventLength, " "c) & $"{100 * stats.PValue:0.00}%")
         objm_Lines.Add("")
         objm_Lines.Add("")
     End Sub
@@ -240,7 +243,7 @@ Public Class clsDetail
                     Dim z_score As New Double
                     Select Case .Item("MeasurementName")
                         Case "T1"
-                            z_score = ((Convert.ToDouble(TCounts("T1")) / TotalMoves) - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
+                            z_score = ((Convert.ToDouble(TCounts("T1")) / ScoredMoves) - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
                             objm_z.Add("T1", z_score)
                         Case "ScACPL"
                             z_score = -1 * (ACPL - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
@@ -398,34 +401,221 @@ Public Class clsDetail
                 {t1scoreCovariance, cplscoreCovariance, scoreVariance}
             }
 
-            Dim mahalanobis As Double = Utilities_NetCore.MahalanobisDistance(testStatistic, means, covarianceMatrix)
-            PValue = mahalanobis
-
-            'TODO: Convert to actual PValue
+            Dim mahalanobis As Double = MahalanobisDistance(testStatistic, means, covarianceMatrix)
+            Dim chiSquareDist As ChiSquared = New ChiSquared(3)
+            PValue = chiSquareDist.CumulativeDistribution(Math.Pow(mahalanobis, 2))
         End Sub
-
-        Private Function CalculateROI(pi_zscores As Dictionary(Of String, Double)) As Double
-            Dim weights As New Dictionary(Of String, Double) From {
-                {"T1", 0.2},
-                {"ScACPL", 0.35},
-                {"Score", 0.45}
-            }
-
-            Dim dotproduct As Double = 0
-            For Each kvp As KeyValuePair(Of String, Double) In pi_zscores
-                dotproduct += kvp.Value * weights(kvp.Key)
-            Next
-
-            Dim sumsquaresroot As Double = 0
-            For Each kvp As KeyValuePair(Of String, Double) In weights
-                sumsquaresroot += Math.Pow(kvp.Value, 2)
-            Next
-            sumsquaresroot = Math.Sqrt(sumsquaresroot)
-
-            Dim z As Double = dotproduct / sumsquaresroot
-            Dim roi As Double = 5 * z + 50
-
-            Return roi
-        End Function
     End Class
+#End Region
+
+#Region "Player Summary"
+    Friend Sub PlayerSummary()
+        Dim PlayerLength As Short = 30
+        Dim EloLength As Short = 7
+        Dim RecordLength As Short = 13
+        Dim PerformanceLength As Short = 7
+        Dim EvmLength As Short = 24
+        Dim BlunderLength As Short = 24
+        Dim AcplLength As Short = 11
+        Dim SdcplLength As Short = 11
+        Dim ScoreLength As Short = 10
+        Dim RoiLength As Short = 9
+        Dim PvalLength As Short = 11
+
+        Dim tempText As String = ""
+        tempText += "Player Name".PadRight(PlayerLength, " "c)
+        tempText += "Elo".PadRight(EloLength, " "c)
+        tempText += "Record".PadRight(RecordLength, " "c)
+        tempText += "Perf".PadRight(PerformanceLength, " "c)
+        tempText += "EVM / Turns = Pcnt".PadRight(EvmLength, " "c)
+        tempText += "Blund / Turns = Pcnt".PadRight(BlunderLength, " "c)
+        tempText += "ScACPL".PadRight(AcplLength, " "c)
+        tempText += "ScSDCPL".PadRight(SdcplLength, " "c)
+        tempText += "Score".PadRight(ScoreLength, " "c)
+        tempText += "ROI".PadRight(RoiLength, " "c)
+        tempText += "PValue".PadRight(PvalLength, " "c)
+        tempText += "Opp EVM Pcnt".PadRight(EvmLength, " "c)
+        tempText += "Opp Blund Pcnt".PadRight(BlunderLength, " "c)
+        tempText += "OppScACPL".PadRight(AcplLength, " "c)
+        tempText += "OppScSDCPL".PadRight(SdcplLength, " "c)
+        tempText += "OppScore".PadRight(ScoreLength, " "c)
+        tempText += "OppROI".PadRight(RoiLength, " "c)
+        tempText += "OppPValue".PadRight(RoiLength, " "c)
+        objm_Lines.Add(tempText)
+        objm_Lines.Add(New String("-", 257))
+
+        Dim objl_CMD As New SqlCommand
+        Select Case params.ReportType
+            Case "Event"
+                With objl_CMD
+                    .Connection = MainWindow.db_Connection
+                    .CommandText = modQueries.EventPlayerSummary()
+                    .Parameters.AddWithValue("@EventID", params.EventID)
+                    .Parameters.AddWithValue("@ScoreID", params.CompareScoreID)
+                End With
+            Case "Player"
+                With objl_CMD
+                    .Connection = MainWindow.db_Connection
+                    .CommandText = modQueries.PlayerPlayerSummary()
+                    .Parameters.AddWithValue("@PlayerID", params.PlayerID)
+                    .Parameters.AddWithValue("@StartDate", params.StartDate)
+                    .Parameters.AddWithValue("@EndDate", params.EndDate)
+                    .Parameters.AddWithValue("@ScoreID", params.CompareScoreID)
+                End With
+        End Select
+
+        Dim objm_PlayerSummaries As New List(Of _playersummary)
+        With objl_CMD.ExecuteReader
+            While .Read
+                Dim objl_Player As New _playersummary
+
+                objl_Player.Name = .Item("Name")
+                objl_Player.Rating = .Item("Rating")
+                objl_Player.Record = .Item("Record")
+                objl_Player.GamesPlayed = .Item("GamesPlayed")
+                objl_Player.PerfRating = .Item("Perf")
+                objl_Player.EVM = .Item("EVM")
+                objl_Player.Blunders = .Item("Blunders")
+                objl_Player.ScoredMoves = .Item("ScoredMoves")
+                objl_Player.ACPL = .Item("ACPL")
+                objl_Player.SDCPL = .Item("SDCPL")
+                objl_Player.Score = .Item("Score")
+                objl_Player.OppEVM = .Item("OppEVM")
+                objl_Player.OppBlunders = .Item("OppBlunders")
+                objl_Player.OppScoredMoves = .Item("OppScoredMoves")
+                objl_Player.OppACPL = .Item("OppACPL")
+                objl_Player.OppSDCPL = .Item("OppSDCPL")
+                objl_Player.OppScore = .Item("OppScore")
+
+                objm_PlayerSummaries.Add(objl_Player)
+            End While
+            .Close()
+        End With
+
+        'Due to the query itself, objm_PlayerSummaries will already be sorted alphabetically by name; if needed, could sort here
+
+        For Each player As _playersummary In objm_PlayerSummaries
+            tempText = ""  'reset this from prior use
+            Dim tmp As String = ""
+
+            tempText += Left(player.Name, PlayerLength).PadRight(PlayerLength, " "c)
+            tempText += player.Rating.ToString().PadRight(EloLength, " "c)
+
+            Dim tempLength As Short = player.GamesPlayed.ToString().Length + 2
+            tmp = $"{player.Record.ToString().PadRight(tempLength, " "c)} / {player.GamesPlayed}"
+            tempText += tmp.PadRight(RecordLength, " "c)
+
+            If player.PerfRating > 0 Then
+                tempText += $"+{player.PerfRating}".PadRight(PerformanceLength, " "c)
+            Else
+                tempText += player.PerfRating.ToString().PadRight(PerformanceLength, " "c)
+            End If
+
+            tmp = player.EVM.ToString().PadRight(4, " "c) & " / " & player.ScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.EVM / player.ScoredMoves):0.00}%"
+            tempText += tmp.PadRight(EvmLength, " "c)
+
+            tmp = player.Blunders.ToString().PadRight(4, " "c) & " / " & player.ScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.Blunders / player.ScoredMoves):0.00}%"
+            tempText += tmp.PadRight(BlunderLength, " "c)
+
+            tempText += player.ACPL.ToString("0.0000").PadRight(AcplLength, " "c)
+            tempText += player.SDCPL.ToString("0.0000").PadRight(SdcplLength, " "c)
+            tempText += player.Score.ToString("0.00").PadRight(ScoreLength, " "c)
+
+            With objl_CMD
+                .Parameters.Clear()
+                .CommandText = modQueries.ZScoreData()
+                .Parameters.AddWithValue("AggregationName", "Event")  'since this value is inclusive of multiple games, it should always be compared against Event
+                .Parameters.AddWithValue("@ScoreName", params.CompareScoreName)
+                .Parameters.AddWithValue("@SourceID", 3)  'hard-coding sourceID since Lichess doesn't have event stats
+                .Parameters.AddWithValue("@TimeControlID", params.CompareTimeControlID)
+                .Parameters.AddWithValue("@RatingID", Math.Floor(player.Rating / 100) * 100)
+            End With
+
+            Dim objm_z As New Dictionary(Of String, Double)
+            Dim objm_zopp As New Dictionary(Of String, Double)
+            With objl_CMD.ExecuteReader
+                While .Read
+                    Dim z_score As New Double
+                    Dim z_score_opp As New Double
+                    Select Case .Item("MeasurementName")
+                        Case "T1"
+                            z_score = ((Convert.ToDouble(player.EVM) / player.ScoredMoves) - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
+                            objm_z.Add("T1", z_score)
+
+                            z_score_opp = ((Convert.ToDouble(player.OppEVM) / player.OppScoredMoves) - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
+                            objm_zopp.Add("T1", z_score_opp)
+                        Case "ScACPL"
+                            z_score = -1 * (player.ACPL - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
+                            objm_z.Add("ScACPL", z_score)
+
+                            z_score_opp = -1 * (player.OppACPL - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
+                            objm_zopp.Add("ScACPL", z_score_opp)
+                        Case Else
+                            'all possible score measurement names
+                            z_score = (player.Score - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
+                            objm_z.Add("Score", z_score)
+
+                            z_score_opp = (player.OppScore - Convert.ToDouble(.Item("Average"))) / Convert.ToDouble(.Item("StandardDeviation"))
+                            objm_zopp.Add("Score", z_score_opp)
+                    End Select
+                    tmp = CalculateROI(objm_z).ToString("0.0")
+                End While
+                .Close()
+            End With
+            tempText += tmp.PadRight(RoiLength, " "c)
+
+            tempText += "".PadRight(PvalLength, " "c)  'TODO: PValue values
+
+            tmp = player.OppEVM.ToString().PadRight(4, " "c) & " / " & player.OppScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.OppEVM / player.OppScoredMoves):0.00}%"
+            tempText += tmp.PadRight(EvmLength, " "c)
+
+            tmp = player.OppBlunders.ToString().PadRight(4, " "c) & " / " & player.OppScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.OppBlunders / player.OppScoredMoves):0.00}%"
+            tempText += tmp.PadRight(BlunderLength, " "c)
+
+            tempText += player.OppACPL.ToString("0.0000").PadRight(AcplLength, " "c)
+            tempText += player.OppSDCPL.ToString("0.0000").PadRight(SdcplLength, " "c)
+            tempText += player.OppScore.ToString("0.00").PadRight(ScoreLength, " "c)
+
+            tmp = CalculateROI(objm_zopp).ToString("0.0")
+            tempText += tmp.PadRight(RoiLength, " "c)
+
+            tempText += "".PadRight(PvalLength, " "c)  'TODO: OppPValue values
+
+            objm_Lines.Add(tempText)
+        Next
+
+        objm_Lines.Add("")
+        objm_Lines.Add("")
+    End Sub
+
+    Private Class _playersummary
+        Friend Property Name As String
+        Friend Property Rating As Short
+        Friend Property Record As Double
+        Friend Property GamesPlayed As Short
+        Friend Property PerfRating As Short
+        Friend Property EVM As Short
+        Friend Property Blunders As Short
+        Friend Property ScoredMoves As Short
+        Friend Property ACPL As Double
+        Friend Property SDCPL As Double
+        Friend Property Score As Double
+        Friend Property OppEVM As Short
+        Friend Property OppBlunders As Short
+        Friend Property OppScoredMoves As Short
+        Friend Property OppACPL As Double
+        Friend Property OppSDCPL As Double
+        Friend Property OppScore As Double
+    End Class
+#End Region
+
+#Region "Game Traces"
+    Friend Sub GameTraces()
+
+    End Sub
+
+    Private Class _gametraces
+        'do I want this to be an individual game or all games from a player? Do I need one class for the entire set of games, and a separate class for a single game?
+    End Class
+#End Region
 End Class
