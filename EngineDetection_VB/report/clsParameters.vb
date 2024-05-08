@@ -1,9 +1,10 @@
 ﻿Imports Microsoft.Data.SqlClient
+Imports System.Globalization
 
 Public Class clsParameters
     Friend ReportType As String
     Friend EventName As String
-    Friend FirstName As String 'TODO: Standardize the first and last names to proper casing at some point
+    Friend FirstName As String
     Friend LastName As String
     Friend StartDate As Date?  'need these dates to be nullable since they are coming from a DatePicker
     Friend EndDate As Date?
@@ -50,6 +51,11 @@ Public Class clsParameters
     End Sub
 
     Friend Sub PopulateIDVariables()
+        'proper case the name variables as part of preprocessing
+        EventName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(EventName.ToLower())
+        FirstName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(FirstName.ToLower())
+        LastName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(LastName.ToLower())
+
         Select Case ReportType
             Case "Event"
                 EventID = GetEventID(EventName)
