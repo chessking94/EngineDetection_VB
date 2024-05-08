@@ -1,4 +1,4 @@
-﻿'TODO: Convert these to procs, keep the actual query text in the DB
+﻿'TODO: Convert these to procs, keep the actual query text in the DB?
 
 Friend Module modQueries
 #Region "Validation"
@@ -486,6 +486,112 @@ Friend Module modQueries
                 ORDER BY 1
             "
     End Function
+
+    Public Function EventPlayerGames() As String
+        Return _
+            "
+                SELECT
+                CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END AS PlayerID,
+                CASE
+                    WHEN NULLIF(TRIM(CASE WHEN c.Color = 'White' THEN wp.FirstName ELSE bp.FirstName END), '') IS NULL
+                        THEN (CASE WHEN c.Color = 'White' THEN wp.LastName ELSE bp.LastName END)
+                    ELSE (CASE WHEN c.Color = 'White' THEN wp.FirstName ELSE bp.FirstName END) + ' ' + (CASE WHEN c.Color = 'White' THEN wp.LastName ELSE bp.LastName END)
+                END AS Name,
+                AVG(CASE WHEN c.Color = 'White' THEN g.WhiteElo ELSE g.BlackElo END) Rating,
+                COUNT(m.MoveNumber) AS ScoredMoves
+
+                FROM lake.Moves m
+                JOIN lake.Games g ON
+                    m.GameID = g.GameID
+                JOIN dim.Colors c ON
+                    m.ColorID = c.ColorID
+                JOIN dim.Players wp ON
+                    g.WhitePlayerID = wp.PlayerID
+                JOIN dim.Players bp ON
+                    g.BlackPlayerID = bp.PlayerID
+
+                WHERE g.EventID = @EventID
+                AND m.MoveScored = 1
+
+                GROUP BY
+                CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END,
+                CASE
+                    WHEN NULLIF(TRIM(CASE WHEN c.Color = 'White' THEN wp.FirstName ELSE bp.FirstName END), '') IS NULL
+                        THEN (CASE WHEN c.Color = 'White' THEN wp.LastName ELSE bp.LastName END)
+                    ELSE (CASE WHEN c.Color = 'White' THEN wp.FirstName ELSE bp.FirstName END) + ' ' + (CASE WHEN c.Color = 'White' THEN wp.LastName ELSE bp.LastName END)
+                END
+
+                ORDER BY 2
+            "
+    End Function
+
+    Public Function EventPlayerOpponents() As String
+        Return _
+            "
+                SELECT
+                g.GameID,
+                g.RoundNum,
+                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'w' ELSE 'b' END AS Color,
+                CASE
+                    WHEN g.WhitePlayerID = @PlayerID AND g.Result = 1 THEN 'W'
+                    WHEN g.BlackPlayerID = @PlayerID AND g.Result = 0 THEN 'W'
+                    WHEN g.WhitePlayerID = @PlayerID AND g.Result = 0 THEN 'L'
+                    WHEN g.BlackPlayerID = @PlayerID AND g.Result = 1 THEN 'L'
+                    ELSE 'D'
+                END AS Result,
+                CASE
+                    WHEN g.WhitePlayerID = @PlayerID THEN (CASE WHEN NULLIF(TRIM(bp.FirstName), '') IS NULL THEN bp.LastName ELSE bp.FirstName + ' ' +  bp.LastName END)
+                    ELSE (CASE WHEN NULLIF(TRIM(wp.FirstName), '') IS NULL THEN wp.LastName ELSE wp.FirstName + ' ' +  wp.LastName END)
+                END AS OppName,
+                AVG(CASE WHEN g.WhitePlayerID = @PlayerID THEN g.BlackElo ELSE g.WhiteElo END) AS OppRating,
+                SUM(CASE WHEN m.Move_Rank = 1 THEN 1 ELSE 0 END) AS EVM,
+                COUNT(m.MoveNumber) AS ScoredMoves,
+                AVG(m.ScACPL) AS ACPL,
+                ISNULL(STDEV(m.ScACPL), 0) AS SDCPL,
+                CASE
+                    WHEN ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100) > 100 THEN 100
+                    ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
+                END AS Score
+
+                FROM lake.Moves m
+                JOIN stat.MoveScores ms ON
+                    m.GameID = ms.GameID AND
+                    m.MoveNumber = ms.MoveNumber AND
+                    m.ColorID = ms.ColorID
+                JOIN lake.Games g ON
+                    m.GameID = g.GameID
+                JOIN dim.Colors c ON
+                    m.ColorID = c.ColorID
+                JOIN dim.Players wp ON
+                    g.WhitePlayerID = wp.PlayerID
+                JOIN dim.Players bp ON
+                    g.BlackPlayerID = bp.PlayerID
+
+                WHERE g.EventID = @EventID
+                AND (g.WhitePlayerID = @PlayerID OR g.BlackPlayerID = @PlayerID)
+                AND (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
+                AND ms.ScoreID = @ScoreID
+                AND m.MoveScored = 1
+
+                GROUP BY
+                g.GameID,
+                g.RoundNum,
+                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'w' ELSE 'b' END,
+                CASE
+                    WHEN g.WhitePlayerID = @PlayerID AND g.Result = 1 THEN 'W'
+                    WHEN g.BlackPlayerID = @PlayerID AND g.Result = 0 THEN 'W'
+                    WHEN g.WhitePlayerID = @PlayerID AND g.Result = 0 THEN 'L'
+                    WHEN g.BlackPlayerID = @PlayerID AND g.Result = 1 THEN 'L'
+                    ELSE 'D'
+                END,
+                CASE
+                    WHEN g.WhitePlayerID = @PlayerID THEN (CASE WHEN NULLIF(TRIM(bp.FirstName), '') IS NULL THEN bp.LastName ELSE bp.FirstName + ' ' +  bp.LastName END)
+                    ELSE (CASE WHEN NULLIF(TRIM(wp.FirstName), '') IS NULL THEN wp.LastName ELSE wp.FirstName + ' ' +  wp.LastName END)
+                END
+
+                ORDER BY 2
+            "
+    End Function
 #End Region
 
 #Region "Player Detail"
@@ -642,18 +748,18 @@ Friend Module modQueries
                 opp.OppSDCPL,
                 opp.OppScore
 
-                FROM ChessWarehouse.lake.Moves m
-                JOIN ChessWarehouse.stat.MoveScores ms ON
+                FROM lake.Moves m
+                JOIN stat.MoveScores ms ON
                     m.GameID = ms.GameID AND
                     m.MoveNumber = ms.MoveNumber AND
                     m.ColorID = ms.ColorID
-                JOIN ChessWarehouse.lake.Games g ON
+                JOIN lake.Games g ON
                     m.GameID = g.GameID
-                JOIN ChessWarehouse.dim.Players wp ON
+                JOIN dim.Players wp ON
                     g.WhitePlayerID = wp.PlayerID
-                JOIN ChessWarehouse.dim.Players bp ON
+                JOIN dim.Players bp ON
                     g.BlackPlayerID = bp.PlayerID
-                JOIN ChessWarehouse.dim.Colors c ON
+                JOIN dim.Colors c ON
                     m.ColorID = c.ColorID
                 JOIN (
                     SELECT
@@ -665,7 +771,7 @@ Friend Module modQueries
                         SUM(CASE WHEN BlackPlayerID = @PlayerID THEN 1 - Result ELSE Result END)/COUNT(GameID)
                     ) - AVG(CASE WHEN WhitePlayerID = @PlayerID THEN WhiteElo ELSE BlackElo END) AS Perf
 
-                    FROM ChessWarehouse.lake.Games
+                    FROM lake.Games
 
                     WHERE (WhitePlayerID = @PlayerID OR BlackPlayerID = @PlayerID)
                     AND GameDate BETWEEN @StartDate AND @EndDate
@@ -687,14 +793,14 @@ Friend Module modQueries
                         ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
                     END AS OppScore
 
-                    FROM ChessWarehouse.lake.Moves m
-                    JOIN ChessWarehouse.stat.MoveScores ms ON
+                    FROM lake.Moves m
+                    JOIN stat.MoveScores ms ON
                         m.GameID = ms.GameID AND
                         m.MoveNumber = ms.MoveNumber AND
                         m.ColorID = ms.ColorID
-                    JOIN ChessWarehouse.lake.Games g ON
+                    JOIN lake.Games g ON
                         m.GameID = g.GameID
-                    JOIN ChessWarehouse.dim.Colors c ON
+                    JOIN dim.Colors c ON
                         m.ColorID = c.ColorID
 
                     WHERE (
@@ -728,6 +834,113 @@ Friend Module modQueries
                 opp.OppScore
             "
     End Function
+
+    Public Function PlayerPlayerGames() As String
+        Return _
+            "
+                SELECT
+                CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END AS PlayerID,
+                CASE
+                    WHEN NULLIF(TRIM(CASE WHEN c.Color = 'White' THEN wp.FirstName ELSE bp.FirstName END), '') IS NULL
+                        THEN (CASE WHEN c.Color = 'White' THEN wp.LastName ELSE bp.LastName END)
+                    ELSE (CASE WHEN c.Color = 'White' THEN wp.FirstName ELSE bp.FirstName END) + ' ' + (CASE WHEN c.Color = 'White' THEN wp.LastName ELSE bp.LastName END)
+                END AS Name,
+                AVG(CASE WHEN c.Color = 'White' THEN g.WhiteElo ELSE g.BlackElo END) Rating,
+                COUNT(m.MoveNumber) AS ScoredMoves
+
+                FROM lake.Moves m
+                JOIN lake.Games g ON
+                    m.GameID = g.GameID
+                JOIN dim.Colors c ON
+                    m.ColorID = c.ColorID
+                JOIN dim.Players wp ON
+                    g.WhitePlayerID = wp.PlayerID
+                JOIN dim.Players bp ON
+                    g.BlackPlayerID = bp.PlayerID
+
+                WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
+                AND g.GameDate BETWEEN @StartDate AND @EndDate
+                AND m.MoveScored = 1
+
+                GROUP BY
+                CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END,
+                CASE
+                    WHEN NULLIF(TRIM(CASE WHEN c.Color = 'White' THEN wp.FirstName ELSE bp.FirstName END), '') IS NULL
+                        THEN (CASE WHEN c.Color = 'White' THEN wp.LastName ELSE bp.LastName END)
+                    ELSE (CASE WHEN c.Color = 'White' THEN wp.FirstName ELSE bp.FirstName END) + ' ' + (CASE WHEN c.Color = 'White' THEN wp.LastName ELSE bp.LastName END)
+                END
+
+                ORDER BY 2
+            "
+    End Function
+
+    Public Function PlayerPlayerOpponents() As String
+        Return _
+            "
+                SELECT
+                g.GameID,
+                g.RoundNum,
+                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'w' ELSE 'b' END AS Color,
+                CASE
+                    WHEN g.WhitePlayerID = @PlayerID AND g.Result = 1 THEN 'W'
+                    WHEN g.BlackPlayerID = @PlayerID AND g.Result = 0 THEN 'W'
+                    WHEN g.WhitePlayerID = @PlayerID AND g.Result = 0 THEN 'L'
+                    WHEN g.BlackPlayerID = @PlayerID AND g.Result = 1 THEN 'L'
+                    ELSE 'D'
+                END AS Result,
+                CASE
+                    WHEN g.WhitePlayerID = @PlayerID THEN (CASE WHEN NULLIF(bp.FirstName, '') IS NULL THEN bp.LastName ELSE bp.FirstName + ' ' +  bp.LastName END)
+                    ELSE (CASE WHEN NULLIF(wp.FirstName, '') IS NULL THEN wp.LastName ELSE wp.FirstName + ' ' +  wp.LastName END)
+                END AS OppName,
+                AVG(CASE WHEN g.WhitePlayerID = @PlayerID THEN g.BlackElo ELSE g.WhiteElo END) AS OppRating,
+                SUM(CASE WHEN m.Move_Rank = 1 THEN 1 ELSE 0 END) AS EVM,
+                COUNT(m.MoveNumber) AS ScoredMoves,
+                AVG(m.ScACPL) AS ACPL,
+                ISNULL(STDEV(m.ScACPL), 0) AS SDCPL,
+                CASE
+                    WHEN ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100) > 100 THEN 100
+                    ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
+                END AS Score
+
+                FROM lake.Moves m
+                JOIN stat.MoveScores ms ON
+                    m.GameID = ms.GameID AND
+                    m.MoveNumber = ms.MoveNumber AND
+                    m.ColorID = ms.ColorID
+                JOIN lake.Games g ON
+                    m.GameID = g.GameID
+                JOIN dim.Colors c ON
+                    m.ColorID = c.ColorID
+                JOIN dim.Players wp ON
+                    g.WhitePlayerID = wp.PlayerID
+                JOIN dim.Players bp	ON
+                    g.BlackPlayerID = bp.PlayerID
+
+                WHERE g.GameDate BETWEEN @StartDate AND @EndDate
+                AND (g.WhitePlayerID = @PlayerID OR g.BlackPlayerID = @PlayerID)
+                AND (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
+                AND ms.ScoreID = @ScoreID
+                AND m.MoveScored = 1
+
+                GROUP BY
+                g.GameID,
+                g.RoundNum,
+                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'w' ELSE 'b' END,
+                CASE
+                    WHEN g.WhitePlayerID = @PlayerID AND g.Result = 1 THEN 'W'
+                    WHEN g.BlackPlayerID = @PlayerID AND g.Result = 0 THEN 'W'
+                    WHEN g.WhitePlayerID = @PlayerID AND g.Result = 0 THEN 'L'
+                    WHEN g.BlackPlayerID = @PlayerID AND g.Result = 1 THEN 'L'
+                    ELSE 'D'
+                END,
+                CASE
+                    WHEN g.WhitePlayerID = @PlayerID THEN (CASE WHEN NULLIF(bp.FirstName, '') IS NULL THEN bp.LastName ELSE bp.FirstName + ' ' +  bp.LastName END)
+                    ELSE (CASE WHEN NULLIF(wp.FirstName, '') IS NULL THEN wp.LastName ELSE wp.FirstName + ' ' +  wp.LastName END)
+                END
+
+                ORDER BY 1
+            "
+    End Function
 #End Region
 
 #Region "Other Detail"
@@ -744,13 +957,17 @@ Friend Module modQueries
                     ss.AggregationID = agg.AggregationID
                 JOIN dim.Measurements ms ON
                     ss.MeasurementID = ms.MeasurementID
+                JOIN dim.Sources s ON
+                    ss.SourceID = s.SourceID
+                JOIN dim.TimeControls tc ON
+                    ss.TimeControlID = tc.TimeControlID
                 LEFT JOIN dim.Colors c ON
                     ss.ColorID = c.ColorID
 
                 WHERE agg.AggregationName = @AggregationName
                 AND ms.MeasurementName IN ('T1', 'ScACPL', @ScoreName)
-                AND ss.SourceID = @SourceID
-                AND ss.TimeControlID = @TimeControlID
+                AND s.SourceName = @SourceName
+                AND tc.TimeControlName = @TimeControlName
                 AND ss.RatingID = @RatingID
             "
 
@@ -766,16 +983,22 @@ Friend Module modQueries
                 ss.Average
 
                 FROM stat.StatisticsSummary ss
+                JOIN dim.Sources s ON
+                    ss.SourceID = s.SourceID
+                JOIN dim.TimeControls tc ON
+                    ss.TimeControlID = tc.TimeControlID
                 JOIN dim.Measurements m ON
                     ss.MeasurementID = m.MeasurementID
                 JOIN dim.Aggregations agg ON
                     ss.AggregationID = agg.AggregationID
+                JOIN dim.Colors c ON
+                    ss.ColorID = c.ColorID
 
-                WHERE ss.SourceID = @SourceID
+                WHERE s.SourceName = @SourceName
                 AND agg.AggregationName = @AggregationName
                 AND ss.RatingID = @RatingID
-                AND ss.TimeControlID = @TimeControlID
-                AND ss.ColorID = @ColorID
+                AND tc.TimeControlName = @TimeControlName
+                AND c.Color = @Color
                 AND ss.EvaluationGroupID = @EvaluationGroupID
                 AND m.MeasurementName = @MeasurementName
             "
@@ -790,16 +1013,22 @@ Friend Module modQueries
                 FROM stat.Covariances cv
                 JOIN dim.Aggregations agg ON
                     cv.AggregationID = agg.AggregationID
+                JOIN dim.Sources s ON
+                    cv.SourceID = s.SourceID
+                JOIN dim.TimeControls tc ON
+                    cv.TimeControlID = tc.TimeControlID
+                JOIN dim.Colors c ON
+                    cv.ColorID = c.ColorID
                 JOIN dim.Measurements m1 ON
                     cv.MeasurementID1 = m1.MeasurementID
                 JOIN dim.Measurements m2 ON
                     cv.MeasurementID2 = m2.MeasurementID
 
-                WHERE cv.SourceID = @SourceID
+                WHERE s.SourceName = @SourceName
                 AND agg.AggregationName = @AggregationName
                 AND cv.RatingID = @RatingID
-                AND cv.TimeControlID = @TimeControlID
-                AND cv.ColorID = @ColorID
+                AND tc.TimeControlName = @TimeControlName
+                AND c.Color = @Color
                 AND cv.EvaluationGroupID = @EvaluationGroupID
                 AND m1.MeasurementName = @MeasurementName1
                 AND m2.MeasurementName = @MeasurementName2

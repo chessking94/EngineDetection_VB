@@ -3,7 +3,7 @@
 Public Class clsParameters
     Friend ReportType As String
     Friend EventName As String
-    Friend FirstName As String
+    Friend FirstName As String 'TODO: Standardize the first and last names to proper casing at some point
     Friend LastName As String
     Friend StartDate As Date?  'need these dates to be nullable since they are coming from a DatePicker
     Friend EndDate As Date?
