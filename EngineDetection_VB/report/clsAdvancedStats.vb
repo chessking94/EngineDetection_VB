@@ -25,11 +25,15 @@ Friend Class clsAdvancedStats
             Weights.Add("Score", 0.45)
         End Sub
 
-        Friend Function GetROI() As Double
+        Friend Function GetROI(Optional Color As String = "") As Double
             Dim objl_CMD As New SqlCommand
             With objl_CMD
                 .Connection = MainWindow.db_Connection
-                .CommandText = modQueries.ZScoreData()
+                If Color = "" Then
+                    .CommandText = modQueries.ZScoreData()
+                Else
+                    .CommandText = modQueries.ZScoreData(Color)
+                End If
                 .Parameters.AddWithValue("AggregationName", AggregationName)
                 .Parameters.AddWithValue("@ScoreName", ScoreName)
                 .Parameters.AddWithValue("@SourceName", SourceName)
@@ -86,12 +90,8 @@ Friend Class clsAdvancedStats
         Friend Property RatingID As Short
         Friend Property TimeControlName As String
         Friend Property Color As String
-        Friend Property EvaluationGroupID As Short
+        Friend Property EvaluationGroupID As Short = 0  'this isn't currently used anywhere except to drill down in the query
         Friend Property ScoreName As String
-
-        Public Sub New()
-
-        End Sub
 
         Friend Function GetPValue() As Double
             If Color = "" Then Color = "N/A"

@@ -1,11 +1,13 @@
-﻿Imports Microsoft.Data.SqlClient
+﻿Imports System.Windows.Forms
+Imports Microsoft.Data.SqlClient
 
 Public Class clsDetail
-    Private ReadOnly params As clsParameters = MainWindow.objl_Parameters
-    Private Const EventLength As Short = 35
+    Private Shared params As clsParameters = MainWindow.objl_Parameters
 
 #Region "Key Stats"
     Friend Sub KeyStats()
+        Const EventLength As Short = 35
+
         Select Case params.ReportType
             Case "Event"
                 objm_Lines.Add("WHOLE-EVENT STATISTICS:")
@@ -197,7 +199,6 @@ Public Class clsDetail
         End Sub
 
         Private Sub AdvancedStats()
-            'score
             Dim objl_CMD As New SqlCommand
             Select Case objl_Parameters.ReportType
                 Case "Event"
@@ -225,7 +226,6 @@ Public Class clsDetail
                 .Close()
             End With
 
-            'ROI
             Dim objm_ROI As New clsAdvancedStats.ROI
             With objm_ROI
                 .AggregationName = "Event"  'since this value is inclusive of multiple games, it should always be compared against Event
@@ -239,7 +239,6 @@ Public Class clsDetail
             End With
             ROI = objm_ROI.GetROI()
 
-            'PValue: TODO: Convert p-value calculation to a separate function so it's not duplicated everywhere
             Dim objm_PValue As New clsAdvancedStats.PValue
             With objm_PValue
                 .T1_Pcnt = Convert.ToDouble(TCounts("T1")) / ScoredMoves
@@ -250,7 +249,6 @@ Public Class clsDetail
                 .RatingID = objl_Parameters.CompareRatingID
                 .TimeControlName = objl_Parameters.CompareTimeControl
                 .Color = ""
-                .EvaluationGroupID = 0
                 .ScoreName = objl_Parameters.CompareScoreName
             End With
             PValue = objm_PValue.GetPValue()
@@ -260,17 +258,17 @@ Public Class clsDetail
 
 #Region "Player Summary"
     Friend Sub PlayerSummary()
-        Dim PlayerLength As Short = 30
-        Dim EloLength As Short = 7
-        Dim RecordLength As Short = 13
-        Dim PerformanceLength As Short = 7
-        Dim EvmLength As Short = 24
-        Dim BlunderLength As Short = 24
-        Dim AcplLength As Short = 11
-        Dim SdcplLength As Short = 11
-        Dim ScoreLength As Short = 10
-        Dim RoiLength As Short = 9
-        Dim PvalLength As Short = 11
+        Const PlayerLength As Short = 30
+        Const EloLength As Short = 7
+        Const RecordLength As Short = 13
+        Const PerformanceLength As Short = 7
+        Const EvmLength As Short = 24
+        Const BlunderLength As Short = 24
+        Const AcplLength As Short = 11
+        Const SdcplLength As Short = 11
+        Const ScoreLength As Short = 10
+        Const RoiLength As Short = 9
+        Const PvalLength As Short = 11
 
         Dim tempText As String = ""
         tempText += "Player Name".PadRight(PlayerLength, " "c)
@@ -395,7 +393,6 @@ Public Class clsDetail
                 .RatingID = params.CompareRatingID
                 .TimeControlName = params.CompareTimeControl
                 .Color = ""
-                .EvaluationGroupID = 0
                 .ScoreName = params.CompareScoreName
             End With
             Dim PValue As Double = objm_PValue.GetPValue()
@@ -436,7 +433,6 @@ Public Class clsDetail
                 .RatingID = params.CompareRatingID
                 .TimeControlName = params.CompareTimeControl
                 .Color = ""
-                .EvaluationGroupID = 0
                 .ScoreName = params.CompareScoreName
             End With
             PValue = objm_PValue.GetPValue()
@@ -473,8 +469,6 @@ Public Class clsDetail
 
 #Region "Game Traces"
     Friend Sub GameTraces()
-        'TODO: I really should reconsider the repeated loops. Likely need lots of classes, maybe have the queries as methods in the classes?
-        'Potentially create a separate class file for all this, this class is getting unwieldly
         objm_Lines.Add(New String("-", 31))
 
         Dim objl_CMD As New SqlCommand
@@ -482,13 +476,13 @@ Public Class clsDetail
             Case "Event"
                 With objl_CMD
                     .Connection = MainWindow.db_Connection
-                    .CommandText = modQueries.EventPlayerGames()
+                    .CommandText = modQueries.EventPlayers()
                     .Parameters.AddWithValue("@EventID", params.EventID)
                 End With
             Case "Player"
                 With objl_CMD
                     .Connection = MainWindow.db_Connection
-                    .CommandText = modQueries.PlayerPlayerGames()
+                    .CommandText = modQueries.PlayerPlayers()
                     .Parameters.AddWithValue("@PlayerID", params.PlayerID)
                     .Parameters.AddWithValue("@StartDate", params.StartDate)
                     .Parameters.AddWithValue("@EndDate", params.EndDate)
@@ -503,6 +497,7 @@ Public Class clsDetail
                 objl_Player.Name = .Item("Name")
                 objl_Player.Rating = Convert.ToInt16(.Item("Rating"))
                 objl_Player.ScoredMoves = Convert.ToInt16(.Item("ScoredMoves"))
+                objl_Player.BuildGames()
 
                 objm_Players.Add(objl_Player)
             End While
@@ -510,24 +505,29 @@ Public Class clsDetail
         End With
 
         For Each player As _player In objm_Players
-            objl_CMD.Parameters.Clear()
-            Select Case params.ReportType
-                Case "Event"
-                    With objl_CMD
-                        .Connection = MainWindow.db_Connection
-                        .CommandText = modQueries.EventPlayerGames()
-                        .Parameters.AddWithValue("@EventID", params.EventID)
-                    End With
-                Case "Player"
-                    With objl_CMD
-                        .Connection = MainWindow.db_Connection
-                        .CommandText = modQueries.PlayerPlayerGames()
-                        .Parameters.AddWithValue("@PlayerID", params.PlayerID)
-                        .Parameters.AddWithValue("@StartDate", params.StartDate)
-                        .Parameters.AddWithValue("@EndDate", params.EndDate)
-                    End With
-            End Select
+            objm_Lines.Add($"{player.Name} {player.Rating} (Moves={player.ScoredMoves})")
+
+            Dim tempText As String = ""
+            For Each game As _game In player.Games
+                tempText += Right($" {game.Round}", 2)
+                tempText += $"{game.ReportColor} "
+                tempText += $"{game.Result} "
+                tempText += game.OppName.PadRight(25, " "c)
+                tempText += game.OppElo.ToString().PadRight(4, " "c) & ":  "
+
+                Dim tmp2 As String = ""
+                tmp2 += game.EVM.ToString().PadRight(3, " "c) & " / " & game.ScoredMoves.ToString().PadRight(3, " "c) & $"{Convert.ToDouble(100 * game.EVM / game.ScoredMoves):0}%"
+                tempText += tmp2.PadRight(18, " "c)
+
+                'ACPL...
+
+                objm_Lines.Add(tempText)
+            Next
+
+            objm_Lines.Add(New String("-", 25))
         Next
+
+        objm_Lines.Add("")
     End Sub
 
     Private Class _player
@@ -535,11 +535,60 @@ Public Class clsDetail
         Friend Property Name As String
         Friend Property Rating As Short
         Friend Property ScoredMoves As Short
+
+        Friend Property Games As New List(Of _game)
+
+        Friend Sub BuildGames()
+            Dim objl_CMD As New SqlCommand
+            Select Case params.ReportType
+                Case "Event"
+                    With objl_CMD
+                        .Connection = MainWindow.db_Connection
+                        .CommandText = modQueries.EventPlayerOpponents()
+                        .Parameters.AddWithValue("@PlayerID", params.PlayerID)
+                        .Parameters.AddWithValue("@EventID", params.EventID)
+                        .Parameters.AddWithValue("@ScoreID", params.CompareScoreID)
+                    End With
+                Case "Player"
+                    With objl_CMD
+                        .Connection = MainWindow.db_Connection
+                        .CommandText = modQueries.PlayerPlayerOpponents()
+                        .Parameters.AddWithValue("@PlayerID", params.PlayerID)
+                        .Parameters.AddWithValue("@StartDate", params.StartDate)
+                        .Parameters.AddWithValue("@EndDate", params.EndDate)
+                        .Parameters.AddWithValue("@ScoreID", params.CompareScoreID)
+                    End With
+            End Select
+
+            With objl_CMD.ExecuteReader
+                While .Read
+                    Dim objl_Game As New _game
+                    objl_Game.GameID = Convert.ToInt64(.Item("GameID"))
+                    objl_Game.Round = Convert.ToInt16(.Item("RoundNum"))
+                    objl_Game.Color = .Item("Color")
+                    objl_Game.ReportColor = objl_Game.Color.Substring(0, 1).ToLower()
+                    objl_Game.Result = .Item("Result")
+                    objl_Game.OppName = .Item("OppName")
+                    objl_Game.OppElo = Convert.ToInt16(.Item("OppRating"))
+                    objl_Game.EVM = Convert.ToInt16(.Item("EVM"))
+                    objl_Game.ScoredMoves = Convert.ToInt16(.Item("ScoredMoves"))
+                    objl_Game.ACPL = Convert.ToDouble(.Item("ACPL"))
+                    objl_Game.SDCPL = Convert.ToDouble(.Item("SDCPL"))
+                    objl_Game.ScoredMoves = Convert.ToDouble(.Item("Score"))
+                    objl_Game.PopulateTrace()
+                    objl_Game.PopulateAdvancedStats()
+
+                    Games.Add(objl_Game)
+                End While
+                .Close()
+            End With
+        End Sub
     End Class
 
-    Private Class _gametrace
+    Private Class _game
+        Friend Property GameID As Long
         Friend Property Round As Short
-        Friend Property Color As Char
+        Friend Property Color As String
         Friend Property Result As Char
         Friend Property OppName As String
         Friend Property OppElo As Short
@@ -548,9 +597,58 @@ Public Class clsDetail
         Friend Property ACPL As Double
         Friend Property SDCPL As Double
         Friend Property Score As Double
+
+        Friend Property ReportColor As Char
+        Friend Property Trace As String
+
         Friend Property ROI As Double
         Friend Property PValue As Double
-        Friend Property MoveTraces As String
+
+        Friend Sub PopulateTrace()
+            Dim objl_CMD As New SqlCommand
+            With objl_CMD
+                .Connection = MainWindow.db_Connection
+                .CommandText = modQueries.GameTrace()
+                .Parameters.AddWithValue("@GameID", GameID)
+                .Parameters.AddWithValue("@Color", Color)
+            End With
+
+            With objl_CMD.ExecuteReader
+                While .Read
+                    Trace += .Item("MoveTrace")
+                End While
+                .Close()
+            End With
+        End Sub
+
+        Friend Sub PopulateAdvancedStats()
+            Dim objm_ROI As New clsAdvancedStats.ROI
+            With objm_ROI
+                .AggregationName = "Game"
+                .ScoreName = params.CompareScoreName
+                .SourceName = params.CompareSourceName
+                .TimeControlName = params.CompareTimeControl
+                .RatingID = params.CompareRatingID
+                .T1_Pcnt = Convert.ToDouble(EVM) / ScoredMoves
+                .ACPL = ACPL
+                .Score = Score
+            End With
+            ROI = objm_ROI.GetROI(Color)
+
+            Dim objm_PValue As New clsAdvancedStats.PValue
+            With objm_PValue
+                .T1_Pcnt = Convert.ToDouble(EVM) / ScoredMoves
+                .ACPL = ACPL
+                .Score = Score
+                .SourceName = params.CompareSourceName
+                .AggregationName = "Game"
+                .RatingID = params.CompareRatingID
+                .TimeControlName = params.CompareTimeControl
+                .Color = Color
+                .ScoreName = params.CompareScoreName
+            End With
+            PValue = objm_PValue.GetPValue()
+        End Sub
     End Class
 #End Region
 End Class

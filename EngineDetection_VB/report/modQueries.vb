@@ -487,7 +487,7 @@ Friend Module modQueries
             "
     End Function
 
-    Public Function EventPlayerGames() As String
+    Public Function EventPlayers() As String
         Return _
             "
                 SELECT
@@ -531,7 +531,7 @@ Friend Module modQueries
                 SELECT
                 g.GameID,
                 g.RoundNum,
-                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'w' ELSE 'b' END AS Color,
+                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'White' ELSE 'Black' END AS Color,
                 CASE
                     WHEN g.WhitePlayerID = @PlayerID AND g.Result = 1 THEN 'W'
                     WHEN g.BlackPlayerID = @PlayerID AND g.Result = 0 THEN 'W'
@@ -835,7 +835,7 @@ Friend Module modQueries
             "
     End Function
 
-    Public Function PlayerPlayerGames() As String
+    Public Function PlayerPlayers() As String
         Return _
             "
                 SELECT
@@ -880,7 +880,7 @@ Friend Module modQueries
                 SELECT
                 g.GameID,
                 g.RoundNum,
-                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'w' ELSE 'b' END AS Color,
+                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'White' ELSE 'Black' END AS Color,
                 CASE
                     WHEN g.WhitePlayerID = @PlayerID AND g.Result = 1 THEN 'W'
                     WHEN g.BlackPlayerID = @PlayerID AND g.Result = 0 THEN 'W'
@@ -944,7 +944,7 @@ Friend Module modQueries
 #End Region
 
 #Region "Other Detail"
-    Public Function ZScoreData(Optional ColorID As Short = 0) As String
+    Public Function ZScoreData(Optional Color As String = "") As String
         Dim qry As String =
             "
                 SELECT
@@ -971,7 +971,7 @@ Friend Module modQueries
                 AND ss.RatingID = @RatingID
             "
 
-        If ColorID > 0 Then qry += $"AND c.ColorID = {ColorID}"
+        If Color <> "" Then qry += $"AND c.Color = {Color}"
 
         Return qry
     End Function
@@ -1032,6 +1032,24 @@ Friend Module modQueries
                 AND cv.EvaluationGroupID = @EvaluationGroupID
                 AND m1.MeasurementName = @MeasurementName1
                 AND m2.MeasurementName = @MeasurementName2
+            "
+    End Function
+
+    Public Function GameTrace() As String
+        Return _
+            "
+                SELECT
+                m.MoveNumber,
+                m.TraceKey AS MoveTrace
+
+                FROM lake.Moves m
+                JOIN dim.Colors c ON
+                    m.ColorID = c.ColorID
+
+                WHERE m.GameID = @GameID
+                AND c.Color = @Color
+
+                ORDER BY 1
             "
     End Function
 #End Region
