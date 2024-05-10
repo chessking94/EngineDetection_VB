@@ -6,6 +6,7 @@ Friend Module modReport
     Public objm_Lines As New List(Of String)
 
     Friend Sub BuildReport()
+        '''Build the different sections of the report
         If objm_Lines.Count > 0 Then objm_Lines.Clear()
 
         Dim objl_Info As New clsInfo
@@ -23,6 +24,7 @@ Friend Module modReport
     End Sub
 
     Private Sub WriteReport()
+        '''Write the report to file
         Dim params As clsParameters = MainWindow.objl_Parameters
         Dim outputDir As String = Path.Combine(SpecialDirectories.Desktop, "Local_Applications", Assembly.GetCallingAssembly().GetName().Name)
         Dim reportName As String = "ReportType_Name_StartDate_EndDate.txt"
@@ -61,7 +63,7 @@ Friend Module modReport
         If abortReason <> "" Then
             MessageBox.Show(abortReason, "Report Creation Aborted", MessageBoxButton.OK, MessageBoxImage.Exclamation)
         Else
-            'File.WriteAllLines(fileName, objm_Lines)  'TODO: Investigate if this can work, didn't in initial test
+            'TODO: Investigate if File.WriteAllLines(fileName, objm_Lines) can work, didn't in initial test
             Using writer As New StreamWriter(fileName, False, System.Text.Encoding.UTF8)
                 For Each line In objm_Lines
                     writer.WriteLine(line)

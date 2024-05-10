@@ -29,7 +29,7 @@ Public Class clsParameters
         EventName = ""
         FirstName = ""
         LastName = ""
-        StartDate = Nothing
+        StartDate = Nothing  'default value for a nullable date is Nothing, not Date.MinValue
         EndDate = Nothing
         SourceName = ""
 
@@ -91,6 +91,7 @@ Public Class clsParameters
                 End Using
         End Select
 
+        'round the rating down to the nearest hundred
         Return Math.Floor(rtnval / 100) * 100
     End Function
 

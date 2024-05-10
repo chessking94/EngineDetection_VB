@@ -90,17 +90,17 @@ Friend Class clsAdvancedStats
         Friend Property RatingID As Short
         Friend Property TimeControlName As String
         Friend Property Color As String
-        Friend Property EvaluationGroupID As Short = 0  'this isn't currently used anywhere except to drill down in the query
+        Friend Property EvaluationGroupID As Short = 0  'this isn't currently used anywhere except to further restrict results returned in the query
         Friend Property ScoreName As String
 
         Friend Function GetPValue() As Double
-            If Color = "" Then Color = "N/A"
+            If Color = "" Then Color = "N/A"  'since the name of the unspecified color in the database is this
             Dim testStatistic As Double() = {T1_Pcnt, ACPL, Score}
             Dim meanVector As Double() = GetMeanVector()
             Dim covarianceMatrix As Double(,) = GetCovarianceMatrix()
             Dim mahalanobis As Double = MahalanobisDistance(testStatistic, meanVector, covarianceMatrix)
             Dim chiSquareDist As ChiSquared = New ChiSquared(3)
-            Dim PValue As Double = chiSquareDist.CumulativeDistribution(Math.Pow(mahalanobis, 2))
+            Dim PValue As Double = 1 - chiSquareDist.CumulativeDistribution(Math.Pow(mahalanobis, 2))
             Return PValue
         End Function
 
@@ -201,7 +201,7 @@ Friend Class clsAdvancedStats
         End Function
 
         Private Function MahalanobisDistance(point As Double(), mean As Double(), covarianceMatrix As Double(,)) As Double
-            'generated originally by ChatGPT
+            '''Return the Mahalanobis distance of a point in n-dimensional space; ChatGPT did pretty good! The output matches my original Python calculation
             If point.Length <> mean.Length Then
                 Throw New ArgumentException("Point and mean vector must have the same length.")
             End If
@@ -224,7 +224,6 @@ Friend Class clsAdvancedStats
         End Function
 
         Private Function MatrixInverse(matrix As Double(,)) As Double(,)
-            'generated originally by ChatGPT
             Dim n As Integer = matrix.GetLength(0)
             If matrix.GetLength(0) <> matrix.GetLength(1) Then
                 Throw New ArgumentException("Matrix must be square.")
