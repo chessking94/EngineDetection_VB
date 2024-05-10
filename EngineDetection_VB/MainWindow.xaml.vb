@@ -238,7 +238,6 @@ Class MainWindow
         Return brush
     End Function
 
-    'TODO: Any time these .SelectionChanged events fire, they need to wipe out previous values in some way. i.e. toggling from time control Classical to Correspondence duplicates all the rating entries
     Private Sub SourceChanged() Handles cb_SourceName.SelectionChanged
         objl_Parameters.SourceName = cb_SourceName.SelectedValue
         TogglePreCompareStats(Visibility.Visible)
@@ -248,6 +247,9 @@ Class MainWindow
     Private Sub CompareSourceChanged() Handles cb_CompareSource.SelectionChanged
         If cb_CompareSource.SelectedIndex >= 0 Then
             objl_Parameters.CompareSourceName = cb_CompareSource.SelectedValue
+            cb_CompareTimeControl.Items.Clear()
+            cb_CompareRatingID.Items.Clear()
+            cb_CompareScoreName.Items.Clear()
 
             cb_CompareTimeControl.IsEnabled = True
 
@@ -275,6 +277,8 @@ Class MainWindow
     Private Sub CompareTimeControlChanged() Handles cb_CompareTimeControl.SelectionChanged
         If cb_CompareTimeControl.SelectedIndex >= 0 Then
             objl_Parameters.CompareTimeControl = cb_CompareTimeControl.SelectedValue
+            cb_CompareRatingID.Items.Clear()
+            cb_CompareScoreName.Items.Clear()
 
             cb_CompareRatingID.IsEnabled = True
 
@@ -297,6 +301,7 @@ Class MainWindow
     Private Sub CompareRatingIDChanged() Handles cb_CompareRatingID.SelectionChanged
         If cb_CompareRatingID.SelectedIndex >= 0 Then
             objl_Parameters.CompareRatingID = cb_CompareRatingID.SelectedValue
+            cb_CompareScoreName.Items.Clear()
 
             cb_CompareScoreName.IsEnabled = True
 
