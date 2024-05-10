@@ -538,8 +538,6 @@ Public Class clsDetail
 
             objm_Lines.Add(New String("-", 25))
         Next
-
-        objm_Lines.Add("")
     End Sub
 
     Private Class _player

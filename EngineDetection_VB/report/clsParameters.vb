@@ -65,13 +65,13 @@ Public Class clsParameters
 
         SourceID = GetSourceID(SourceName)
 
+
+        CompareSourceID = GetSourceID(CompareSourceName)
+        CompareTimeControlID = GetTimeControlID(CompareTimeControl)
         If CompareRatingID = -1 Then
             CompareRatingID = GetDefaultRatingID()
-        Else
-            CompareSourceID = GetSourceID(CompareSourceName)
-            CompareTimeControlID = GetTimeControlID(CompareTimeControl)
-            CompareScoreID = GetScoreID(CompareScoreName)
         End If
+        CompareScoreID = GetScoreID(CompareScoreName)
     End Sub
 
     Private Function GetDefaultRatingID() As Short

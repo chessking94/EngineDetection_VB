@@ -63,12 +63,7 @@ Friend Module modReport
         If abortReason <> "" Then
             MessageBox.Show(abortReason, "Report Creation Aborted", MessageBoxButton.OK, MessageBoxImage.Exclamation)
         Else
-            'TODO: Investigate if File.WriteAllLines(fileName, objm_Lines) can work, didn't in initial test
-            Using writer As New StreamWriter(fileName, False, System.Text.Encoding.UTF8)
-                For Each line In objm_Lines
-                    writer.WriteLine(line)
-                Next
-            End Using
+            File.WriteAllLines(fileName, objm_Lines)
 
             Try
                 Process.Start("explorer.exe", outputDir)
