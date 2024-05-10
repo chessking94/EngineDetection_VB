@@ -134,7 +134,7 @@ Public Class clsInfo
         objm_Lines.Add("A move is Scored if it does not meet any of the following:")
         objm_Lines.Add(Space(4) & "Is theoretical opening move")
         objm_Lines.Add(Space(4) & "Is a tablebase hit")
-        objm_Lines.Add(Space(4) & $"The best engine evaluation is greater than {MaxEval} centipawns or a mate in N")
+        objm_Lines.Add(Space(4) & $"The best engine evaluation is greater than {MaxEval * 100} centipawns or a mate in N")
         objm_Lines.Add(Space(4) & "The engine evaluation of the move played is a mate in N")
         objm_Lines.Add(Space(4) & "Only one legal move exists or the difference in evaluation between the top 2 engine moves is greater than 200 centipawns")
         objm_Lines.Add(Space(4) & "Is the second or third occurance of the position")

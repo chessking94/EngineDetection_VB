@@ -2,6 +2,7 @@
 
 Friend Module modValidation
     Friend Function EventName(pi_EventName As String) As List(Of String)
+        '''Return possible source values for a given event
         Dim rtn_SourceNames As New List(Of String)
 
         Using objl_CMD As New SqlCommand(modQueries.EventSources(), MainWindow.db_Connection)
@@ -17,6 +18,7 @@ Friend Module modValidation
     End Function
 
     Friend Function PlayerName(pi_FirstName As String, pi_LastName As String) As List(Of String)
+        '''Return possible source values for a given player
         Dim rtn_SourceNames As New List(Of String)
 
         Using objl_CMD As New SqlCommand(modQueries.NameSources(), MainWindow.db_Connection)
@@ -33,6 +35,7 @@ Friend Module modValidation
     End Function
 
     Friend Function CompareSources() As List(Of String)
+        '''Return possible sources for comparision statistics
         Dim rtn_SourceNames As New List(Of String)
 
         Using objl_CMD As New SqlCommand(modQueries.CompareSources(), MainWindow.db_Connection)
@@ -47,6 +50,7 @@ Friend Module modValidation
     End Function
 
     Friend Function CompareTimeControls(pi_SourceName As String) As List(Of String)
+        '''Return possible time controls for comparison statistics
         Dim rtn_TimeControls As New List(Of String)
 
         Using objl_CMD As New SqlCommand(modQueries.CompareTimeControls(), MainWindow.db_Connection)
@@ -62,6 +66,7 @@ Friend Module modValidation
     End Function
 
     Friend Function CompareRatingIDs(pi_SourceName As String, pi_TimeControl As String) As List(Of Short)
+        '''Return possible rating ID's for comparison statistics
         Dim rtn_RatingIDs As New List(Of Short)
 
         Using objl_CMD As New SqlCommand(modQueries.CompareRatingIDs(), MainWindow.db_Connection)

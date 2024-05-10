@@ -1,6 +1,8 @@
 ﻿Imports Microsoft.Data.SqlClient
 Imports System.Reflection
 
+' TODO: Mark outliers with an asterisk (EVM, ACPL, SDCPL, Score, ROI, PValue)
+
 Class MainWindow
     Private ErrorReason As String = ""
 

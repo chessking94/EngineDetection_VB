@@ -47,7 +47,6 @@ Public Class clsDetail
         objm_Lines.Add("ScSDCPL:".PadRight(EventLength, " "c) & stats.SDCPL.ToString("0.0000"))
 
         'advanced stats
-        'TODO: Add the asterisks to each of these when needed
         objm_Lines.Add("Score:".PadRight(EventLength, " "c) & stats.Score.ToString("0.00"))
         objm_Lines.Add("ROI:".PadRight(EventLength, " "c) & stats.ROI.ToString("0.0"))
         objm_Lines.Add("PValue:".PadRight(EventLength, " "c) & $"{100 * stats.PValue:0.00}%")
@@ -339,8 +338,6 @@ Public Class clsDetail
             .Close()
         End With
 
-        'Due to the query itself, objm_PlayerSummaries will already be sorted alphabetically by name; if needed, could sort here
-
         For Each player As _playersummary In objm_PlayerSummaries
             tempText = ""  'reset this from prior use
             Dim tmp As String = ""
@@ -358,7 +355,7 @@ Public Class clsDetail
                 tempText += player.PerfRating.ToString().PadRight(PerformanceLength, " "c)
             End If
 
-            tmp = player.EVM.ToString().PadRight(4, " "c) & " / " & player.ScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.EVM / player.ScoredMoves):0.00}%"
+            tmp = player.EVM.ToString().PadRight(4, " "c) & " / " & player.ScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.EVM / player.ScoredMoves):0.0}%"
             tempText += tmp.PadRight(EvmLength, " "c)
 
             tmp = player.Blunders.ToString().PadRight(4, " "c) & " / " & player.ScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.Blunders / player.ScoredMoves):0.00}%"
@@ -398,7 +395,7 @@ Public Class clsDetail
             Dim strPValue As String = (100 * PValue).ToString("0.00") & "%"
             tempText += strPValue.PadRight(PvalLength, " "c)
 
-            tmp = player.OppEVM.ToString().PadRight(4, " "c) & " / " & player.OppScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.OppEVM / player.OppScoredMoves):0.00}%"
+            tmp = player.OppEVM.ToString().PadRight(4, " "c) & " / " & player.OppScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.OppEVM / player.OppScoredMoves):0.0}%"
             tempText += tmp.PadRight(EvmLength, " "c)
 
             tmp = player.OppBlunders.ToString().PadRight(4, " "c) & " / " & player.OppScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.OppBlunders / player.OppScoredMoves):0.00}%"
@@ -525,13 +522,15 @@ Public Class clsDetail
                 tempText += $"{(100 * game.PValue):0.00}%".PadRight(8, " "c)
 
                 For i As Short = 0 To game.Trace.Length - 1
-                    tempText += game.Trace(i)
-                    If i Mod 60 = 59 Then
-                        objm_Lines.Add(tempText)
-                        tempText = New String(" ", 93)
-                    Else
-                        If i Mod 10 = 9 Then tempText += " "
+                    If i > 0 Then
+                        If i Mod 60 = 0 Then
+                            objm_Lines.Add(tempText)
+                            tempText = New String(" ", 93)
+                        Else
+                            If i Mod 10 = 0 Then tempText += " "
+                        End If
                     End If
+                    tempText += game.Trace(i)
                 Next
 
                 objm_Lines.Add(tempText)
