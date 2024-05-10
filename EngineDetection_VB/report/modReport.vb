@@ -17,7 +17,7 @@ Friend Module modReport
         objl_Info.PlayerKey()
         objl_Detail.PlayerSummary()
         objl_Info.GameKey()
-        'objl_Detail.GameTraces()
+        objl_Detail.GameTraces()
 
         WriteReport()
     End Sub

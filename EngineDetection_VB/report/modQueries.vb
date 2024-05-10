@@ -576,7 +576,7 @@ Friend Module modQueries
                 GROUP BY
                 g.GameID,
                 g.RoundNum,
-                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'w' ELSE 'b' END,
+                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'White' ELSE 'Black' END,
                 CASE
                     WHEN g.WhitePlayerID = @PlayerID AND g.Result = 1 THEN 'W'
                     WHEN g.BlackPlayerID = @PlayerID AND g.Result = 0 THEN 'W'
@@ -925,7 +925,7 @@ Friend Module modQueries
                 GROUP BY
                 g.GameID,
                 g.RoundNum,
-                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'w' ELSE 'b' END,
+                CASE WHEN g.WhitePlayerID = @PlayerID THEN 'White' ELSE 'Black' END,
                 CASE
                     WHEN g.WhitePlayerID = @PlayerID AND g.Result = 1 THEN 'W'
                     WHEN g.BlackPlayerID = @PlayerID AND g.Result = 0 THEN 'W'
@@ -971,7 +971,7 @@ Friend Module modQueries
                 AND ss.RatingID = @RatingID
             "
 
-        If Color <> "" Then qry += $"AND c.Color = {Color}"
+        If Color <> "" Then qry += $"AND c.Color = '{Color}'"
 
         Return qry
     End Function

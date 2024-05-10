@@ -1,5 +1,4 @@
-﻿Imports System.Windows.Forms
-Imports Microsoft.Data.SqlClient
+﻿Imports Microsoft.Data.SqlClient
 
 Public Class clsDetail
     Private Shared params As clsParameters = MainWindow.objl_Parameters
@@ -493,7 +492,7 @@ Public Class clsDetail
         With objl_CMD.ExecuteReader
             While .Read
                 Dim objl_Player As New _player
-                objl_Player.PlayerID = Convert.ToInt16(.Item("PlayerID"))
+                objl_Player.PlayerID = Convert.ToInt64(.Item("PlayerID"))
                 objl_Player.Name = .Item("Name")
                 objl_Player.Rating = Convert.ToInt16(.Item("Rating"))
                 objl_Player.ScoredMoves = Convert.ToInt16(.Item("ScoredMoves"))
@@ -507,8 +506,8 @@ Public Class clsDetail
         For Each player As _player In objm_Players
             objm_Lines.Add($"{player.Name} {player.Rating} (Moves={player.ScoredMoves})")
 
-            Dim tempText As String = ""
             For Each game As _game In player.Games
+                Dim tempText As String = ""
                 tempText += Right($" {game.Round}", 2)
                 tempText += $"{game.ReportColor} "
                 tempText += $"{game.Result} "
@@ -516,10 +515,24 @@ Public Class clsDetail
                 tempText += game.OppElo.ToString().PadRight(4, " "c) & ":  "
 
                 Dim tmp2 As String = ""
-                tmp2 += game.EVM.ToString().PadRight(3, " "c) & " / " & game.ScoredMoves.ToString().PadRight(3, " "c) & $"{Convert.ToDouble(100 * game.EVM / game.ScoredMoves):0}%"
+                tmp2 += game.EVM.ToString().PadRight(3, " "c) & " / " & game.ScoredMoves.ToString().PadRight(3, " "c) & $" = {Convert.ToDouble(100 * game.EVM / game.ScoredMoves):0}%"
                 tempText += tmp2.PadRight(18, " "c)
 
-                'ACPL...
+                tempText += $"{game.ACPL:0.0000}".PadRight(8, " "c)
+                tempText += $"{game.SDCPL:0.0000}".PadRight(8, " "c)
+                tempText += $"{game.Score:0.00}".PadRight(7, " "c)
+                tempText += $"{game.ROI:0.0}".PadRight(6, " "c)
+                tempText += $"{(100 * game.PValue):0.00}%".PadRight(8, " "c)
+
+                For i As Short = 0 To game.Trace.Length - 1
+                    tempText += game.Trace(i)
+                    If i Mod 60 = 59 Then
+                        objm_Lines.Add(tempText)
+                        tempText = New String(" ", 93)
+                    Else
+                        If i Mod 10 = 9 Then tempText += " "
+                    End If
+                Next
 
                 objm_Lines.Add(tempText)
             Next
@@ -545,7 +558,7 @@ Public Class clsDetail
                     With objl_CMD
                         .Connection = MainWindow.db_Connection
                         .CommandText = modQueries.EventPlayerOpponents()
-                        .Parameters.AddWithValue("@PlayerID", params.PlayerID)
+                        .Parameters.AddWithValue("@PlayerID", PlayerID)
                         .Parameters.AddWithValue("@EventID", params.EventID)
                         .Parameters.AddWithValue("@ScoreID", params.CompareScoreID)
                     End With
@@ -553,7 +566,7 @@ Public Class clsDetail
                     With objl_CMD
                         .Connection = MainWindow.db_Connection
                         .CommandText = modQueries.PlayerPlayerOpponents()
-                        .Parameters.AddWithValue("@PlayerID", params.PlayerID)
+                        .Parameters.AddWithValue("@PlayerID", PlayerID)
                         .Parameters.AddWithValue("@StartDate", params.StartDate)
                         .Parameters.AddWithValue("@EndDate", params.EndDate)
                         .Parameters.AddWithValue("@ScoreID", params.CompareScoreID)
@@ -574,7 +587,7 @@ Public Class clsDetail
                     objl_Game.ScoredMoves = Convert.ToInt16(.Item("ScoredMoves"))
                     objl_Game.ACPL = Convert.ToDouble(.Item("ACPL"))
                     objl_Game.SDCPL = Convert.ToDouble(.Item("SDCPL"))
-                    objl_Game.ScoredMoves = Convert.ToDouble(.Item("Score"))
+                    objl_Game.Score = Convert.ToDouble(.Item("Score"))
                     objl_Game.PopulateTrace()
                     objl_Game.PopulateAdvancedStats()
 

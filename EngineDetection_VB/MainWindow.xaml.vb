@@ -236,6 +236,7 @@ Class MainWindow
         Return brush
     End Function
 
+    'TODO: Any time these .SelectionChanged events fire, they need to wipe out previous values in some way. i.e. toggling from time control Classical to Correspondence duplicates all the rating entries
     Private Sub SourceChanged() Handles cb_SourceName.SelectionChanged
         objl_Parameters.SourceName = cb_SourceName.SelectedValue
         TogglePreCompareStats(Visibility.Visible)
