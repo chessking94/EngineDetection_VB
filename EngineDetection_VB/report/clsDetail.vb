@@ -43,12 +43,12 @@ Public Class clsDetail
             objm_Lines.Add($"{kvp.Key}:".PadRight(EventLength, " "c) & $"{kvp.Value} / {stats.ScoredMoves} = {Convert.ToDouble(100 * kvp.Value / stats.ScoredMoves):0.00}%")
         Next
         objm_Lines.Add("Blunders:".PadRight(EventLength, " "c) & $"{stats.Blunders} / {stats.ScoredMoves} = {Convert.ToDouble(100 * stats.Blunders / stats.ScoredMoves):0.00}%")
-        objm_Lines.Add("ScACPL:".PadRight(EventLength, " "c) & stats.ACPL.ToString("0.0000"))
-        objm_Lines.Add("ScSDCPL:".PadRight(EventLength, " "c) & stats.SDCPL.ToString("0.0000"))
+        objm_Lines.Add("ScACPL:".PadRight(EventLength, " "c) & stats.ACPL.ToString("0.0000"))  'TODO: Add flag via modOutliers.FlagCPL
+        objm_Lines.Add("ScSDCPL:".PadRight(EventLength, " "c) & stats.SDCPL.ToString("0.0000"))  'TODO: Add flag via modOutliers.FlagCPL
 
         'advanced stats
-        objm_Lines.Add("Score:".PadRight(EventLength, " "c) & stats.Score.ToString("0.00"))
-        objm_Lines.Add("ROI:".PadRight(EventLength, " "c) & stats.ROI.ToString("0.0"))
+        objm_Lines.Add("Score:".PadRight(EventLength, " "c) & stats.Score.ToString("0.00"))  'TODO: Add flag if >=99.995
+        objm_Lines.Add("ROI:".PadRight(EventLength, " "c) & stats.ROI.ToString("0.0"))  'TODO: Add flag if >= 70 or <= 30
         objm_Lines.Add("PValue:".PadRight(EventLength, " "c) & $"{100 * stats.PValue:0.00}%")
         objm_Lines.Add("")
         objm_Lines.Add("")
@@ -355,15 +355,15 @@ Public Class clsDetail
                 tempText += player.PerfRating.ToString().PadRight(PerformanceLength, " "c)
             End If
 
-            tmp = player.EVM.ToString().PadRight(4, " "c) & " / " & player.ScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.EVM / player.ScoredMoves):0.0}%"
+            tmp = player.EVM.ToString().PadRight(4, " "c) & " / " & player.ScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.EVM / player.ScoredMoves):0.0}%"  'TODO: Add flag via modOutliers.FlagEVM
             tempText += tmp.PadRight(EvmLength, " "c)
 
             tmp = player.Blunders.ToString().PadRight(4, " "c) & " / " & player.ScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.Blunders / player.ScoredMoves):0.00}%"
             tempText += tmp.PadRight(BlunderLength, " "c)
 
-            tempText += player.ACPL.ToString("0.0000").PadRight(AcplLength, " "c)
-            tempText += player.SDCPL.ToString("0.0000").PadRight(SdcplLength, " "c)
-            tempText += player.Score.ToString("0.00").PadRight(ScoreLength, " "c)
+            tempText += player.ACPL.ToString("0.0000").PadRight(AcplLength, " "c)  'TODO: Add flag via modOutliers.FlagCPL
+            tempText += player.SDCPL.ToString("0.0000").PadRight(SdcplLength, " "c)  'TODO: Add flag via modOutliers.FlagCPL
+            tempText += player.Score.ToString("0.00").PadRight(ScoreLength, " "c)  'TODO: Add flag if >=99.995
 
             Dim objm_ROI As New clsAdvancedStats.ROI
             With objm_ROI
@@ -376,7 +376,7 @@ Public Class clsDetail
                 .ACPL = player.ACPL
                 .Score = player.Score
             End With
-            tmp = objm_ROI.GetROI().ToString("0.0")
+            tmp = objm_ROI.GetROI().ToString("0.0")  'TODO: Add flag if >= 70 or <= 30
             tempText += tmp.PadRight(RoiLength, " "c)
 
             Dim objm_PValue As New clsAdvancedStats.PValue
@@ -392,7 +392,7 @@ Public Class clsDetail
                 .ScoreName = params.CompareScoreName
             End With
             Dim PValue As Double = objm_PValue.GetPValue()
-            Dim strPValue As String = (100 * PValue).ToString("0.00") & "%"
+            Dim strPValue As String = (100 * PValue).ToString("0.00") & "%"  'TODO: Add flag if <= 0.001
             tempText += strPValue.PadRight(PvalLength, " "c)
 
             tmp = player.OppEVM.ToString().PadRight(4, " "c) & " / " & player.OppScoredMoves.ToString().PadRight(4, " "c) & $" = {Convert.ToDouble(100 * player.OppEVM / player.OppScoredMoves):0.0}%"
@@ -512,14 +512,14 @@ Public Class clsDetail
                 tempText += game.OppElo.ToString().PadRight(4, " "c) & ":  "
 
                 Dim tmp2 As String = ""
-                tmp2 += game.EVM.ToString().PadRight(3, " "c) & " / " & game.ScoredMoves.ToString().PadRight(3, " "c) & $" = {Convert.ToDouble(100 * game.EVM / game.ScoredMoves):0}%"
+                tmp2 += game.EVM.ToString().PadRight(3, " "c) & " / " & game.ScoredMoves.ToString().PadRight(3, " "c) & $" = {Convert.ToDouble(100 * game.EVM / game.ScoredMoves):0}%"  'TODO: Add flag via modOutliers.FlagEVM
                 tempText += tmp2.PadRight(18, " "c)
 
-                tempText += $"{game.ACPL:0.0000}".PadRight(8, " "c)
-                tempText += $"{game.SDCPL:0.0000}".PadRight(8, " "c)
-                tempText += $"{game.Score:0.00}".PadRight(7, " "c)
-                tempText += $"{game.ROI:0.0}".PadRight(6, " "c)
-                tempText += $"{(100 * game.PValue):0.00}%".PadRight(8, " "c)
+                tempText += $"{game.ACPL:0.0000}".PadRight(8, " "c)  'TODO: Add flag via modOutliers.FlagCPL
+                tempText += $"{game.SDCPL:0.0000}".PadRight(8, " "c)  'TODO: Add flag via modOutliers.FlagCPL
+                tempText += $"{game.Score:0.00}".PadRight(7, " "c)  'TODO: Add flag if >= 99.995
+                tempText += $"{game.ROI:0.0}".PadRight(6, " "c)  'TODO: Add flag if >= 70 or <= 30
+                tempText += $"{(100 * game.PValue):0.00}%".PadRight(8, " "c)  'TODO: Add flag if <= 0.001
 
                 For i As Short = 0 To game.Trace.Length - 1
                     If i > 0 Then

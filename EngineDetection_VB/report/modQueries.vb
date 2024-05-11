@@ -1054,4 +1054,70 @@ Friend Module modQueries
     End Function
 #End Region
 #End Region
+
+#Region "Outliers"
+    Public Function EVM_Outlier(Optional Color As String = "") As String
+        Dim qry As String =
+            "
+                SELECT
+                100*ss.Average AS Average,
+                100*ss.StandardDevIation AS StandardDeviation,
+                100*ss.MaxValue AS MaxValue
+
+                FROM stat.StatisticsSummary ss
+                JOIN dim.Sources s ON
+                    ss.SourceID = s.SourceID
+                JOIN dim.TimeControls tc ON
+                    ss.TimeControlID = tc.TimeControlID
+                JOIN dim.Aggregations agg ON
+                    ss.AggregationID = agg.AggregationID
+                JOIN dim.Measurements ms ON
+                    ss.MeasurementID = ms.MeasurementID
+                LEFT JOIN dim.Colors c ON
+                    ss.ColorID = c.ColorID
+
+                WHERE s.SourceName = @SourceName
+                AND tc.TimeControlName = @TimeControlName
+                AND ms.MeasurementName = 'T1'
+                AND agg.AggregationName = @AggregationName
+                AND ss.RatingID = @RatingID
+            "
+
+        If Color <> "" Then qry += $"AND c.Color = '{Color}'"
+
+        Return qry
+    End Function
+
+    Public Function CPL_Outlier(Optional Color As String = "") As String
+        Dim qry As String =
+            "
+                SELECT
+                ss.Average,
+                ss.StandardDeviation,
+                ss.MinValue
+
+                FROM stat.StatisticsSummary ss
+                JOIN dim.Sources s ON
+                    ss.SourceID = s.SourceID
+                JOIN dim.TimeControls tc ON
+                    ss.TimeControlID = tc.TimeControlID
+                JOIN dim.Aggregations agg ON
+                    ss.AggregationID = agg.AggregationID
+                JOIN dim.Measurements ms ON
+                    ss.MeasurementID = ms.MeasurementID
+                LEFT JOIN dim.Colors c ON
+                    ss.ColorID = c.ColorID
+
+                WHERE ms.MeasurementName = @MeasurementName
+                AND s.SourceName = @SourceName
+                AND tc.TimeControlName = @TimeControlName
+                AND agg.AggregationName = @AggregationName
+                AND ss.RatingID = @RatingID
+            "
+
+        If Color <> "" Then qry += $"AND c.Color = '{Color}'"
+
+        Return qry
+    End Function
+#End Region
 End Module
