@@ -102,8 +102,36 @@ Class MainWindow
             BuildReport()
         Catch ex As Exception
             MessageBox.Show(ex.Message & vbCrLf & ex.StackTrace, "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error)
-            'TODO: reset everything?
+            ReportTypeChanged()  'this will reset the window for the user
         End Try
+    End Sub
+
+    Private Sub Reset() Handles btn_Reset.Click
+        objl_Parameters.ClearVariables()
+        cb_ReportType.SelectedValue = Nothing
+        tb_EventName.Text = ""
+        tb_LastName.Text = ""
+        tb_FirstName.Text = ""
+        dp_StartDate.SelectedDate = Nothing
+        dp_EndDate.SelectedDate = Nothing
+        cb_SourceName.Items.Clear()
+        chk_UseCompareStats.IsChecked = False
+        cb_CompareSource.Items.Clear()
+        cb_CompareTimeControl.Items.Clear()
+        cb_CompareRatingID.Items.Clear()
+        cb_CompareScoreName.Items.Clear()
+        tb_EventName.IsEnabled = True
+        tb_FirstName.IsEnabled = True
+        tb_LastName.IsEnabled = True
+        dp_StartDate.IsEnabled = True
+        dp_EndDate.IsEnabled = True
+
+        ToggleEvent(Visibility.Hidden)
+        ToggleName(Visibility.Hidden)
+        ToggleSource(Visibility.Hidden)
+        TogglePreCompareStats(Visibility.Hidden)
+        ToggleCompareStats(Visibility.Hidden)
+        btn_Generate.IsEnabled = False
     End Sub
 #End Region
 
