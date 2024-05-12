@@ -50,6 +50,7 @@ Friend Module modQueries
         Return _
             "
                 SELECT DISTINCT
+                tc.TimeControlID,
                 tc.TimeControlName
 
                 FROM stat.StatisticsSummary ss
@@ -59,6 +60,9 @@ Friend Module modQueries
                     ss.TimeControlID = tc.TimeControlID                
 
                 WHERE s.SourceName = @SourceName
+
+                ORDER BY
+                tc.TimeControlID
             "
     End Function
 
