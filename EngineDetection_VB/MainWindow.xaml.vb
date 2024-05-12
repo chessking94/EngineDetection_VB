@@ -98,7 +98,12 @@ Class MainWindow
     Private Sub Generate() Handles btn_Generate.Click
         btn_Generate.IsEnabled = False
         objl_Parameters.PopulateIDVariables()
-        BuildReport()
+        Try
+            BuildReport()
+        Catch ex As Exception
+            MessageBox.Show(ex.Message & vbCrLf & ex.StackTrace, "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error)
+            'TODO: reset everything?
+        End Try
     End Sub
 #End Region
 
