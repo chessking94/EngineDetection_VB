@@ -397,12 +397,12 @@ Friend Module modQueries
                     WHEN ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100) > 100 THEN 100
                     ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
                 END AS Score,
-                opp.OppEVM,
-                opp.OppBlunders,
-                opp.OppScoredMoves,
-                opp.OppACPL,
-                opp.OppSDCPL,
-                opp.OppScore
+                COALESCE(opp.OppEVM, 0) AS OppEVM,
+                COALESCE(opp.OppBlunders, 0) AS OppBlunders,
+                COALESCE(opp.OppScoredMoves, 0) AS OppScoredMoves,
+                COALESCE(opp.OppACPL, 0) AS OppACPL,
+                COALESCE(opp.OppSDCPL, 0) AS OppSDCPL,
+                COALESCE(opp.OppScore, 0) AS OppScore
 
                 FROM lake.Moves m
                 JOIN stat.MoveScores ms ON
@@ -480,12 +480,12 @@ Friend Module modQueries
                 e.Record,
                 e.GamesPlayed,
                 e.Perf,
-                opp.OppEVM,
-                opp.OppBlunders,
-                opp.OppScoredMoves,
-                opp.OppACPL,
-                opp.OppSDCPL,
-                opp.OppScore
+                COALESCE(opp.OppEVM, 0),
+                COALESCE(opp.OppBlunders, 0),
+                COALESCE(opp.OppScoredMoves, 0),
+                COALESCE(opp.OppACPL, 0),
+                COALESCE(opp.OppSDCPL, 0),
+                COALESCE(opp.OppScore, 0)
 
                 ORDER BY 1
             "
@@ -745,12 +745,12 @@ Friend Module modQueries
                     WHEN ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100) > 100 THEN 100
                     ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
                 END AS Score,
-                opp.OppEVM,
-                opp.OppBlunders,
-                opp.OppScoredMoves,
-                opp.OppACPL,
-                opp.OppSDCPL,
-                opp.OppScore
+                COALESCE(opp.OppEVM, 0) AS OppEVM,
+                COALESCE(opp.OppBlunders, 0) AS OppBlunders,
+                COALESCE(opp.OppScoredMoves, 0) AS OppScoredMoves,
+                COALESCE(opp.OppACPL, 0) AS OppACPL,
+                COALESCE(opp.OppSDCPL, 0) AS OppSDCPL,
+                COALESCE(opp.OppScore, 0) AS OppScore
 
                 FROM lake.Moves m
                 JOIN stat.MoveScores ms ON
@@ -784,7 +784,7 @@ Friend Module modQueries
                     CASE WHEN WhitePlayerID = @PlayerID THEN WhitePlayerID ELSE BlackPlayerID END
                 ) e ON
                     (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = e.PlayerID
-                JOIN (
+                LEFT JOIN (
                     SELECT
                     CASE WHEN c.Color = 'White' THEN g.BlackPlayerID ELSE g.WhitePlayerID END AS OppPlayerID,
                     SUM(CASE WHEN m.Move_Rank = 1 THEN 1 ELSE 0	END) AS OppEVM,
@@ -830,12 +830,12 @@ Friend Module modQueries
                 e.Record,
                 e.GamesPlayed,
                 e.Perf,
-                opp.OppEVM,
-                opp.OppBlunders,
-                opp.OppScoredMoves,
-                opp.OppACPL,
-                opp.OppSDCPL,
-                opp.OppScore
+                COALESCE(opp.OppEVM, 0),
+                COALESCE(opp.OppBlunders, 0),
+                COALESCE(opp.OppScoredMoves, 0),
+                COALESCE(opp.OppACPL, 0),
+                COALESCE(opp.OppSDCPL, 0),
+                COALESCE(opp.OppScore, 0)
             "
     End Function
 
