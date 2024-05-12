@@ -6,7 +6,7 @@ Friend Module modReport
     Public objm_Lines As New List(Of String)
 
     Friend Sub BuildReport()
-        '''Build the different sections of the report
+        'Build the different sections of the report
         If objm_Lines.Count > 0 Then objm_Lines.Clear()
 
         Dim objl_Info As New clsInfo
@@ -24,16 +24,16 @@ Friend Module modReport
     End Sub
 
     Private Sub WriteReport()
-        '''Write the report to file
+        'Write the report to file
         Dim params As clsParameters = MainWindow.objl_Parameters
         Dim outputDir As String = Path.Combine(SpecialDirectories.Desktop, "Local_Applications", Assembly.GetCallingAssembly().GetName().Name)
-        Dim reportName As String = "ReportType_Name_StartDate_EndDate.txt"
+        Dim reportName As String = "" 'ReportType_Name[_StartDate_EndDate].txt
 
         Select Case params.ReportType
             Case "Event"
                 reportName = $"{params.ReportType}_{params.EventName}.txt"
             Case "Player"
-                reportName = $"{params.ReportType}_{params.FirstName} {params.LastName}.txt"
+                reportName = $"{params.ReportType}_{params.FirstName} {params.LastName}_{params.StartDate:yyyyMMdd}_{params.EndDate:yyyyMMdd}.txt"
         End Select
 
         'remove bad characters from file name
