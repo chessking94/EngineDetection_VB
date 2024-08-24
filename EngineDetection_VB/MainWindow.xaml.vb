@@ -1,13 +1,25 @@
 ﻿Imports Microsoft.Data.SqlClient
-Imports System.Reflection
+Imports System.IO
 
 Class MainWindow
+    Private myConfig As New Utilities_NetCore.clsConfig
+    Public Shared db_Connection As New SqlConnection
+
+    Public Shared objl_Parameters As New clsParameters
     Private ErrorReason As String = ""
 
-    Public Shared db_Connection As SqlConnection = Utilities_NetCore.ConnectionLocal("ChessWarehouse", Assembly.GetCallingAssembly().GetName().Name)
-    Public Shared objl_Parameters As New clsParameters
-
     Private Sub WindowLoaded() Handles Me.Loaded
+        Dim projectDir As String = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\.."))
+        Dim configFile As String = Path.Combine(projectDir, "appsettings.json")
+        myConfig.configFile = configFile
+
+#If DEBUG Then
+        Dim connectionString As String = myConfig.getConfig("connectionStringDev")
+#Else
+        Dim connectionString As String = myConfig.getConfig("connectionStringProd")
+#End If
+        db_Connection = Utilities_NetCore.Connection(connectionString)
+
         'build selection options for report types
         For Each report As enum_ReportType In [Enum].GetValues(GetType(enum_ReportType))
             cb_ReportType.Items.Add(report.ToString())
@@ -22,7 +34,7 @@ Class MainWindow
         btn_Generate.IsEnabled = False
 
         Try
-            If db_Connection.State <> System.Data.ConnectionState.Open Then
+            If db_Connection.State <> Data.ConnectionState.Open Then
                 db_Connection.Open()
             End If
         Catch ex As Exception
@@ -32,7 +44,7 @@ Class MainWindow
     End Sub
 
     Private Sub WindowClosed() Handles Me.Closed
-        If db_Connection.State = System.Data.ConnectionState.Open Then
+        If db_Connection.State = Data.ConnectionState.Open Then
             db_Connection.Close()
         End If
         db_Connection.Dispose()

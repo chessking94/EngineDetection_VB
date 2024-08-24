@@ -11,6 +11,7 @@ Friend Module modValidation
                 While .Read
                     rtn_SourceNames.Add(.Item("SourceName"))
                 End While
+                .Close()
             End With
         End Using
 
@@ -28,6 +29,7 @@ Friend Module modValidation
                 While .Read
                     rtn_SourceNames.Add(.Item("SourceName"))
                 End While
+                .Close()
             End With
         End Using
 
@@ -43,6 +45,7 @@ Friend Module modValidation
                 While .Read
                     rtn_SourceNames.Add(.Item("SourceName"))
                 End While
+                .Close()
             End With
         End Using
 
@@ -59,6 +62,7 @@ Friend Module modValidation
                 While .Read
                     rtn_TimeControls.Add(.Item("TimeControlName"))
                 End While
+                .Close()
             End With
         End Using
 
@@ -76,6 +80,7 @@ Friend Module modValidation
                 While .Read
                     rtn_RatingIDs.Add(.Item("RatingID"))
                 End While
+                .Close()
             End With
         End Using
 

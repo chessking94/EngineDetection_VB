@@ -102,6 +102,7 @@ Public Class clsInfo
                     eventRounds = .Item("Rounds")
                     eventPlayers = .Item("Players")
                 End While
+                .Close()
             End With
         End Using
 

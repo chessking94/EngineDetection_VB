@@ -5,3 +5,4 @@ obj
 
 # files
 appsettings.json
+*.user
