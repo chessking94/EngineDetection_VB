@@ -1,8 +1,9 @@
 # directories
-/.vs
-bin
-obj
+.vs/
+bin/
+obj/
+My Project/
 
 # files
-appsettings.json
 *.user
+appsettings.json
