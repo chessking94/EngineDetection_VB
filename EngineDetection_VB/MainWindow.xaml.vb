@@ -10,18 +10,16 @@ Class MainWindow
 
     Private Sub WindowLoaded() Handles Me.Loaded
 #If DEBUG Then
+        'three directories above exe
         Dim projectDir As String = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\.."))
 #Else
+        'one directory above exe
         Dim projectDir As String = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".."))
 #End If
         Dim configFile As String = Path.Combine(projectDir, "appsettings.json")
         myConfig.configFile = configFile
 
-#If DEBUG Then
-        Dim connectionString As String = myConfig.getConfig("connectionStringDev")
-#Else
-        Dim connectionString As String = myConfig.getConfig("connectionStringProd")
-#End If
+        Dim connectionString As String = myConfig.getConfig("connectionString")
         db_Connection = Utilities_NetCore.Connection(connectionString)
 
         'build selection options for report types
