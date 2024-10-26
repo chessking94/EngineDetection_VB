@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34723.18
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "EngineDetection_VB", "EngineDetection_VB\EngineDetection_VB.vbproj", "{8C51691F-AB7D-4175-8D33-BB8E5F2C2124}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "EngineDetection_VB", "EngineDetection_VB\EngineDetection_VB.vbproj", "{8C51691F-AB7D-4175-8D33-BB8E5F2C2124}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Utilities_NetCore", "..\Utilities_NetCore\Utilities_NetCore\Utilities_NetCore.vbproj", "{8AD5F58F-2062-4D46-B525-E1F6C8378A1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{8C51691F-AB7D-4175-8D33-BB8E5F2C2124}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C51691F-AB7D-4175-8D33-BB8E5F2C2124}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C51691F-AB7D-4175-8D33-BB8E5F2C2124}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AD5F58F-2062-4D46-B525-E1F6C8378A1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AD5F58F-2062-4D46-B525-E1F6C8378A1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AD5F58F-2062-4D46-B525-E1F6C8378A1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AD5F58F-2062-4D46-B525-E1F6C8378A1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
