@@ -1,8 +1,8 @@
 ﻿Imports Microsoft.Data.SqlClient
 Imports System.IO
+Imports System.Windows.Forms
 
 Class MainWindow
-    Private myConfig As New Utilities_NetCore.clsConfig
     Public Shared db_Connection As New SqlConnection
 
     Public Shared objl_Parameters As New clsParameters
@@ -12,15 +12,18 @@ Class MainWindow
 #If DEBUG Then
         'three directories above exe
         Dim projectDir As String = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\.."))
+        Dim connectionString As String = Environment.GetEnvironmentVariable("ConnectionStringDebug")
 #Else
         'one directory above exe
         Dim projectDir As String = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".."))
+        Dim connectionString As String = Environment.GetEnvironmentVariable("ConnectionStringRelease")
 #End If
-        Dim configFile As String = Path.Combine(projectDir, "appsettings.json")
-        myConfig.configFile = configFile
-
-        Dim connectionString As String = myConfig.getConfig("connectionString")
-        db_Connection = Utilities_NetCore.Connection(connectionString)
+        If connectionString Is Nothing Then
+            MessageBox.Show("Unable to read connection string", "Connection String Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Environment.Exit(-1)
+        Else
+            db_Connection = Utilities_NetCore.Connection(connectionString)
+        End If
 
         'build selection options for report types
         For Each report As enum_ReportType In [Enum].GetValues(GetType(enum_ReportType))
@@ -97,7 +100,7 @@ Class MainWindow
             tb_LastName.IsEnabled = True
             dp_StartDate.IsEnabled = True
             dp_EndDate.IsEnabled = True
-            MessageBox.Show(ErrorReason, "Error", MessageBoxButton.OK, MessageBoxImage.Error)
+            MessageBox.Show(ErrorReason, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
             If objl_Parameters.EventName <> "" Then
                 tb_EventName.Text = ""
             Else
@@ -115,7 +118,7 @@ Class MainWindow
         Try
             BuildReport()
         Catch ex As Exception
-            MessageBox.Show(ex.Message & vbCrLf & ex.StackTrace, "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error)
+            MessageBox.Show(ex.Message & vbCrLf & ex.StackTrace, "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
             ReportTypeChanged()  'this will reset the window for the user
         End Try
     End Sub
