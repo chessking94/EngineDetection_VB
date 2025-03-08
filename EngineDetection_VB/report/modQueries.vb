@@ -9,8 +9,8 @@ Friend Module modQueries
                 e.EventName,
                 s.SourceName
 
-                FROM dim.Events e
-                JOIN dim.Sources s ON
+                FROM ChessWarehouse.dim.Events e
+                JOIN ChessWarehouse.dim.Sources s ON
                     e.SourceID = s.SourceID
 
                 WHERE e.EventName = @EventName
@@ -25,8 +25,8 @@ Friend Module modQueries
                 p.LastName,
                 s.SourceName
 
-                FROM dim.Players p
-                JOIN dim.Sources s ON
+                FROM ChessWarehouse.dim.Players p
+                JOIN ChessWarehouse.dim.Sources s ON
                     p.SourceID = s.SourceID
 
                 WHERE p.FirstName = @FirstName
@@ -40,8 +40,8 @@ Friend Module modQueries
                 SELECT DISTINCT
                 s.SourceName
 
-                FROM stat.StatisticsSummary ss
-                JOIN dim.Sources s ON
+                FROM ChessWarehouse.stat.StatisticsSummary ss
+                JOIN ChessWarehouse.dim.Sources s ON
                     ss.SourceID = s.SourceID
             "
     End Function
@@ -53,10 +53,10 @@ Friend Module modQueries
                 tc.TimeControlID,
                 tc.TimeControlName
 
-                FROM stat.StatisticsSummary ss
-                JOIN dim.Sources s ON
+                FROM ChessWarehouse.stat.StatisticsSummary ss
+                JOIN ChessWarehouse.dim.Sources s ON
                     ss.SourceID = s.SourceID                
-                JOIN dim.TimeControls tc ON
+                JOIN ChessWarehouse.dim.TimeControls tc ON
                     ss.TimeControlID = tc.TimeControlID                
 
                 WHERE s.SourceName = @SourceName
@@ -72,10 +72,10 @@ Friend Module modQueries
                 SELECT DISTINCT
                 ss.RatingID
 
-                FROM stat.StatisticsSummary ss
-                JOIN dim.Sources s ON
+                FROM ChessWarehouse.stat.StatisticsSummary ss
+                JOIN ChessWarehouse.dim.Sources s ON
                     ss.SourceID = s.SourceID
-                JOIN dim.TimeControls tc ON
+                JOIN ChessWarehouse.dim.TimeControls tc ON
                     ss.TimeControlID = tc.TimeControlID
 
                 WHERE s.SourceName = @SourceName
@@ -88,19 +88,19 @@ Friend Module modQueries
 
 #Region "Parameters"
     Public Function SourceID() As String
-        Return "SELECT SourceID FROM dim.Sources WHERE SourceName = @SourceName"
+        Return "SELECT SourceID FROM ChessWarehouse.dim.Sources WHERE SourceName = @SourceName"
     End Function
 
     Public Function EventID() As String
-        Return "SELECT EventID FROM dim.Events WHERE EventName = @EventName"
+        Return "SELECT EventID FROM ChessWarehouse.dim.Events WHERE EventName = @EventName"
     End Function
 
     Public Function TimeControlID() As String
-        Return "SELECT TimeControlID FROM dim.TimeControls WHERE TimeControlName = @TimeControlName"
+        Return "SELECT TimeControlID FROM ChessWarehouse.dim.TimeControls WHERE TimeControlName = @TimeControlName"
     End Function
 
     Public Function ScoreID() As String
-        Return "SELECT ScoreID FROM dim.Scores WHERE ScoreName = @ScoreName"
+        Return "SELECT ScoreID FROM ChessWarehouse.dim.Scores WHERE ScoreName = @ScoreName"
     End Function
 
     Public Function PlayerID() As String
@@ -109,8 +109,8 @@ Friend Module modQueries
                 SELECT
                 p.PlayerID
 
-                FROM dim.Players p
-                JOIN dim.Sources s ON
+                FROM ChessWarehouse.dim.Players p
+                JOIN ChessWarehouse.dim.Sources s ON
                     p.SourceID = s.SourceID
 
                 WHERE p.FirstName = @FirstName
@@ -120,7 +120,7 @@ Friend Module modQueries
     End Function
 
     Public Function EventAvgRating() As String
-        Return "SELECT ROUND(AVG((WhiteElo + BlackElo)/2), 0) AS AvgGameRating FROM lake.Games WHERE EventID = @EventID"
+        Return "SELECT ROUND(AVG((WhiteElo + BlackElo)/2), 0) AS AvgGameRating FROM ChessWarehouse.lake.Games WHERE EventID = @EventID"
     End Function
 
     Public Function PlayerAvgRating() As String
@@ -133,7 +133,7 @@ Friend Module modQueries
                     SELECT
                     NULLIF(NULLIF(WhiteElo, ''), 0) AS Elo
 
-                    FROM lake.Games
+                    FROM ChessWarehouse.lake.Games
 
                     WHERE WhitePlayerID = @PlayerID
                     AND GameDate BETWEEN @StartDate AND @EndDate
@@ -143,7 +143,7 @@ Friend Module modQueries
                     SELECT
                     NULLIF(NULLIF(BlackElo, ''), 0) AS Elo
 
-                    FROM lake.Games
+                    FROM ChessWarehouse.lake.Games
 
                     WHERE BlackPlayerID = @PlayerID
                     AND GameDate BETWEEN @StartDate AND @EndDate
@@ -159,10 +159,10 @@ Friend Module modQueries
                 SELECT TOP(1)
                 eng.EngineName
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Engines eng ON
+                JOIN ChessWarehouse.dim.Engines eng ON
                     m.EngineID = eng.EngineID
 
                 WHERE g.EventID = @EventID
@@ -181,16 +181,16 @@ Friend Module modQueries
                 SELECT TOP(1)
                 eng.EngineName
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
 	                m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
 	                m.ColorID = c.ColorID
-                JOIN dim.Players wp ON
+                JOIN ChessWarehouse.dim.Players wp ON
 	                g.WhitePlayerID = wp.PlayerID
-                JOIN dim.Players bp ON
+                JOIN ChessWarehouse.dim.Players bp ON
 	                g.BlackPlayerID = bp.PlayerID
-                JOIN dim.Engines eng ON
+                JOIN ChessWarehouse.dim.Engines eng ON
 	                m.EngineID = eng.EngineID
 
                 WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
@@ -210,8 +210,8 @@ Friend Module modQueries
                 SELECT TOP(1)
                 m.Depth
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
 
                 WHERE g.EventID = @EventID
@@ -230,14 +230,14 @@ Friend Module modQueries
                 SELECT TOP(1)
                 m.Depth
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
 	                m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
 	                m.ColorID = c.ColorID
-                JOIN dim.Players wp ON
+                JOIN ChessWarehouse.dim.Players wp ON
 	                g.WhitePlayerID = wp.PlayerID
-                JOIN dim.Players bp ON
+                JOIN ChessWarehouse.dim.Players bp ON
 	                g.BlackPlayerID = bp.PlayerID
 
                 WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
@@ -253,7 +253,7 @@ Friend Module modQueries
     End Function
 
     Public Function MaxEval() As String
-        Return "SELECT Value FROM dbo.Settings WHERE Name = 'Max Eval'"
+        Return "SELECT Value FROM ChessWarehouse.dbo.Settings WHERE Name = 'Max Eval'"
     End Function
 
     Public Function EventSummary() As String
@@ -264,7 +264,7 @@ Friend Module modQueries
                 MAX(RoundNum) AS Rounds,
                 (COUNT(DISTINCT WhitePlayerID) + COUNT(DISTINCT BlackPlayerID))/2 AS Players
 
-                FROM lake.Games
+                FROM ChessWarehouse.lake.Games
 
                 WHERE EventID = @EventID
             "
@@ -281,7 +281,7 @@ Friend Module modQueries
                 ROUND(MIN((WhiteElo + BlackElo)/2), 0) AS MinRating,
                 ROUND(MAX((WhiteElo + BlackElo)/2), 0) AS MaxRating
 
-                FROM lake.Games
+                FROM ChessWarehouse.lake.Games
 
                 WHERE EventID = @EventID
             "
@@ -294,8 +294,8 @@ Friend Module modQueries
                 COUNT(m.MoveNumber) AS TotalMoves,
                 SUM(CAST(m.MoveScored AS tinyint)) AS ScoredMoves
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
 
                 WHERE g.EventID = @EventID
@@ -310,10 +310,10 @@ Friend Module modQueries
                 t.TraceDescription,
                 COUNT(m.MoveNumber) AS MoveCount
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Traces t ON
+                JOIN ChessWarehouse.dim.Traces t ON
                     m.TraceKey = t.TraceKey
 
                 WHERE g.EventID = @EventID
@@ -341,10 +341,10 @@ Friend Module modQueries
                 ISNULL(STDEV(m.ScACPL), 0) AS SDCPL,
                 SUM(CASE WHEN m.CP_Loss > 2 THEN 1 ELSE 0 END) AS Blunders
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
 
                 WHERE g.EventID = @EventID
@@ -361,12 +361,12 @@ Friend Module modQueries
                     ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
                 END AS Score
 
-                FROM lake.Moves m
-                JOIN stat.MoveScores ms ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.stat.MoveScores ms ON
                     m.GameID = ms.GameID AND
                     m.MoveNumber = ms.MoveNumber AND
                     m.ColorID = ms.ColorID
-                JOIN lake.Games g ON
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
 
                 WHERE g.EventID = @EventID
@@ -404,18 +404,18 @@ Friend Module modQueries
                 COALESCE(opp.OppSDCPL, 0) AS OppSDCPL,
                 COALESCE(opp.OppScore, 0) AS OppScore
 
-                FROM lake.Moves m
+                FROM ChessWarehouse.lake.Moves m
                 JOIN stat.MoveScores ms ON
                     m.GameID = ms.GameID AND
                     m.MoveNumber = ms.MoveNumber AND
                     m.ColorID = ms.ColorID
-                JOIN lake.Games g ON
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
-                JOIN dim.Players wp ON
+                JOIN ChessWarehouse.dim.Players wp ON
                     g.WhitePlayerID = wp.PlayerID
-                JOIN dim.Players bp ON
+                JOIN ChessWarehouse.dim.Players bp ON
                     g.BlackPlayerID = bp.PlayerID
                 JOIN (
                     SELECT
@@ -423,9 +423,9 @@ Friend Module modQueries
                     PlayerID,
                     SUM(ColorResult) AS Record,
                     COUNT(GameID) AS GamesPlayed,
-                    dbo.GetPerfRating(AVG(OppElo), SUM(ColorResult)/COUNT(GameID)) - AVG(Elo) AS Perf
+                    ChessWarehouse.dbo.GetPerfRating(AVG(OppElo), SUM(ColorResult)/COUNT(GameID)) - AVG(Elo) AS Perf
 
-                    FROM lake.vwEventBreakdown
+                    FROM ChessWarehouse.lake.vwEventBreakdown
 
                     GROUP BY
                     EventID,
@@ -447,14 +447,14 @@ Friend Module modQueries
                         ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
                     END AS OppScore
 
-                    FROM lake.Moves m
-                    JOIN stat.MoveScores ms ON
+                    FROM ChessWarehouse.lake.Moves m
+                    JOIN ChessWarehouse.stat.MoveScores ms ON
                         m.GameID = ms.GameID AND
                         m.MoveNumber = ms.MoveNumber AND
                         m.ColorID = ms.ColorID
-                    JOIN lake.Games g ON
+                    JOIN ChessWarehouse.lake.Games g ON
                         m.GameID = g.GameID
-                    JOIN dim.Colors c ON
+                    JOIN ChessWarehouse.dim.Colors c ON
                         m.ColorID = c.ColorID
 
                     WHERE ms.ScoreID = @ScoreID
@@ -504,14 +504,14 @@ Friend Module modQueries
                 AVG(CASE WHEN c.Color = 'White' THEN g.WhiteElo ELSE g.BlackElo END) Rating,
                 COUNT(m.MoveNumber) AS ScoredMoves
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
-                JOIN dim.Players wp ON
+                JOIN ChessWarehouse.dim.Players wp ON
                     g.WhitePlayerID = wp.PlayerID
-                JOIN dim.Players bp ON
+                JOIN ChessWarehouse.dim.Players bp ON
                     g.BlackPlayerID = bp.PlayerID
 
                 WHERE g.EventID = @EventID
@@ -557,18 +557,18 @@ Friend Module modQueries
                     ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
                 END AS Score
 
-                FROM lake.Moves m
-                JOIN stat.MoveScores ms ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.stat.MoveScores ms ON
                     m.GameID = ms.GameID AND
                     m.MoveNumber = ms.MoveNumber AND
                     m.ColorID = ms.ColorID
-                JOIN lake.Games g ON
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
-                JOIN dim.Players wp ON
+                JOIN ChessWarehouse.dim.Players wp ON
                     g.WhitePlayerID = wp.PlayerID
-                JOIN dim.Players bp ON
+                JOIN ChessWarehouse.dim.Players bp ON
                     g.BlackPlayerID = bp.PlayerID
 
                 WHERE g.EventID = @EventID
@@ -612,7 +612,7 @@ Friend Module modQueries
                     NULLIF(NULLIF(WhiteElo, ''), 0) AS Elo,
                     NULLIF(NULLIF(BlackElo, ''), 0) AS OppElo
 
-                    FROM lake.Games
+                    FROM ChessWarehouse.lake.Games
 
                     WHERE WhitePlayerID = @PlayerID
                     AND GameDate BETWEEN @StartDate AND @EndDate
@@ -623,7 +623,7 @@ Friend Module modQueries
                     NULLIF(NULLIF(BlackElo, ''), 0) AS Elo,
                     NULLIF(NULLIF(WhiteElo, ''), 0) AS OppElo
 
-                    FROM lake.Games
+                    FROM ChessWarehouse.lake.Games
 
                     WHERE BlackPlayerID = @PlayerID
                     AND GameDate BETWEEN @StartDate AND @EndDate
@@ -638,10 +638,10 @@ Friend Module modQueries
                 COUNT(m.MoveNumber) AS TotalMoves,
                 SUM(CAST(m.MoveScored AS tinyint)) AS ScoredMoves
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
 
                 WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
@@ -656,12 +656,12 @@ Friend Module modQueries
                 t.TraceDescription,
                 COUNT(m.MoveNumber) AS MoveCount
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Traces t ON
+                JOIN ChessWarehouse.dim.Traces t ON
                     m.TraceKey = t.TraceKey
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
 
                 WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
@@ -689,10 +689,10 @@ Friend Module modQueries
                 ISNULL(STDEV(m.ScACPL), 0) AS SDCPL,
                 SUM(CASE WHEN m.CP_Loss > 2 THEN 1 ELSE 0 END) AS Blunders
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
 
                 WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
@@ -710,14 +710,14 @@ Friend Module modQueries
                     ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
                 END AS Score
 
-                FROM lake.Moves m
-                JOIN stat.MoveScores ms ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.stat.MoveScores ms ON
                     m.GameID = ms.GameID AND
                     m.MoveNumber = ms.MoveNumber AND
                     m.ColorID = ms.ColorID
-                JOIN lake.Games g ON
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
 
                 WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
@@ -752,30 +752,30 @@ Friend Module modQueries
                 COALESCE(opp.OppSDCPL, 0) AS OppSDCPL,
                 COALESCE(opp.OppScore, 0) AS OppScore
 
-                FROM lake.Moves m
-                JOIN stat.MoveScores ms ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.stat.MoveScores ms ON
                     m.GameID = ms.GameID AND
                     m.MoveNumber = ms.MoveNumber AND
                     m.ColorID = ms.ColorID
-                JOIN lake.Games g ON
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Players wp ON
+                JOIN ChessWarehouse.dim.Players wp ON
                     g.WhitePlayerID = wp.PlayerID
-                JOIN dim.Players bp ON
+                JOIN ChessWarehouse.dim.Players bp ON
                     g.BlackPlayerID = bp.PlayerID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
                 JOIN (
                     SELECT
                     CASE WHEN WhitePlayerID = @PlayerID THEN WhitePlayerID ELSE BlackPlayerID END AS PlayerID,
                     SUM(CASE WHEN BlackPlayerID = @PlayerID THEN 1 - Result ELSE Result END) AS Record,
                     COUNT(GameID) AS GamesPlayed,
-                    dbo.GetPerfRating(
+                    ChessWarehouse.dbo.GetPerfRating(
                         AVG(CASE WHEN WhitePlayerID = @PlayerID THEN BlackElo ELSE WhiteElo END),
                         SUM(CASE WHEN BlackPlayerID = @PlayerID THEN 1 - Result ELSE Result END)/COUNT(GameID)
                     ) - AVG(CASE WHEN WhitePlayerID = @PlayerID THEN WhiteElo ELSE BlackElo END) AS Perf
 
-                    FROM lake.Games
+                    FROM ChessWarehouse.lake.Games
 
                     WHERE (WhitePlayerID = @PlayerID OR BlackPlayerID = @PlayerID)
                     AND GameDate BETWEEN @StartDate AND @EndDate
@@ -797,14 +797,14 @@ Friend Module modQueries
                         ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
                     END AS OppScore
 
-                    FROM lake.Moves m
-                    JOIN stat.MoveScores ms ON
+                    FROM ChessWarehouse.lake.Moves m
+                    JOIN ChessWarehouse.stat.MoveScores ms ON
                         m.GameID = ms.GameID AND
                         m.MoveNumber = ms.MoveNumber AND
                         m.ColorID = ms.ColorID
-                    JOIN lake.Games g ON
+                    JOIN ChessWarehouse.lake.Games g ON
                         m.GameID = g.GameID
-                    JOIN dim.Colors c ON
+                    JOIN ChessWarehouse.dim.Colors c ON
                         m.ColorID = c.ColorID
 
                     WHERE (
@@ -852,14 +852,14 @@ Friend Module modQueries
                 AVG(CASE WHEN c.Color = 'White' THEN g.WhiteElo ELSE g.BlackElo END) Rating,
                 COUNT(m.MoveNumber) AS ScoredMoves
 
-                FROM lake.Moves m
-                JOIN lake.Games g ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
-                JOIN dim.Players wp ON
+                JOIN ChessWarehouse.dim.Players wp ON
                     g.WhitePlayerID = wp.PlayerID
-                JOIN dim.Players bp ON
+                JOIN ChessWarehouse.dim.Players bp ON
                     g.BlackPlayerID = bp.PlayerID
 
                 WHERE (CASE WHEN c.Color = 'White' THEN g.WhitePlayerID ELSE g.BlackPlayerID END) = @PlayerID
@@ -906,18 +906,18 @@ Friend Module modQueries
                     ELSE ISNULL(100*SUM(ms.ScoreValue)/NULLIF(SUM(ms.MaxScoreValue), 0), 100)
                 END AS Score
 
-                FROM lake.Moves m
-                JOIN stat.MoveScores ms ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.stat.MoveScores ms ON
                     m.GameID = ms.GameID AND
                     m.MoveNumber = ms.MoveNumber AND
                     m.ColorID = ms.ColorID
-                JOIN lake.Games g ON
+                JOIN ChessWarehouse.lake.Games g ON
                     m.GameID = g.GameID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
-                JOIN dim.Players wp ON
+                JOIN ChessWarehouse.dim.Players wp ON
                     g.WhitePlayerID = wp.PlayerID
-                JOIN dim.Players bp	ON
+                JOIN ChessWarehouse.dim.Players bp	ON
                     g.BlackPlayerID = bp.PlayerID
 
                 WHERE g.GameDate BETWEEN @StartDate AND @EndDate
@@ -956,16 +956,16 @@ Friend Module modQueries
                 ss.Average,
                 ss.StandardDeviation
 
-                FROM stat.StatisticsSummary ss
-                JOIN dim.Aggregations agg ON
+                FROM ChessWarehouse.stat.StatisticsSummary ss
+                JOIN ChessWarehouse.dim.Aggregations agg ON
                     ss.AggregationID = agg.AggregationID
-                JOIN dim.Measurements ms ON
+                JOIN ChessWarehouse.dim.Measurements ms ON
                     ss.MeasurementID = ms.MeasurementID
-                JOIN dim.Sources s ON
+                JOIN ChessWarehouse.dim.Sources s ON
                     ss.SourceID = s.SourceID
-                JOIN dim.TimeControls tc ON
+                JOIN ChessWarehouse.dim.TimeControls tc ON
                     ss.TimeControlID = tc.TimeControlID
-                LEFT JOIN dim.Colors c ON
+                LEFT JOIN ChessWarehouse.dim.Colors c ON
                     ss.ColorID = c.ColorID
 
                 WHERE agg.AggregationName = @AggregationName
@@ -986,16 +986,16 @@ Friend Module modQueries
                 SELECT
                 ss.Average
 
-                FROM stat.StatisticsSummary ss
-                JOIN dim.Sources s ON
+                FROM ChessWarehouse.stat.StatisticsSummary ss
+                JOIN ChessWarehouse.dim.Sources s ON
                     ss.SourceID = s.SourceID
-                JOIN dim.TimeControls tc ON
+                JOIN ChessWarehouse.dim.TimeControls tc ON
                     ss.TimeControlID = tc.TimeControlID
-                JOIN dim.Measurements m ON
+                JOIN ChessWarehouse.dim.Measurements m ON
                     ss.MeasurementID = m.MeasurementID
-                JOIN dim.Aggregations agg ON
+                JOIN ChessWarehouse.dim.Aggregations agg ON
                     ss.AggregationID = agg.AggregationID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     ss.ColorID = c.ColorID
 
                 WHERE s.SourceName = @SourceName
@@ -1014,18 +1014,18 @@ Friend Module modQueries
                 SELECT
                 cv.Covariance
 
-                FROM stat.Covariances cv
-                JOIN dim.Aggregations agg ON
+                FROM ChessWarehouse.stat.Covariances cv
+                JOIN ChessWarehouse.dim.Aggregations agg ON
                     cv.AggregationID = agg.AggregationID
-                JOIN dim.Sources s ON
+                JOIN ChessWarehouse.dim.Sources s ON
                     cv.SourceID = s.SourceID
-                JOIN dim.TimeControls tc ON
+                JOIN ChessWarehouse.dim.TimeControls tc ON
                     cv.TimeControlID = tc.TimeControlID
-                JOIN dim.Colors c ON
+                JOIN ChessWarehouse.dim.Colors c ON
                     cv.ColorID = c.ColorID
-                JOIN dim.Measurements m1 ON
+                JOIN ChessWarehouse.dim.Measurements m1 ON
                     cv.MeasurementID1 = m1.MeasurementID
-                JOIN dim.Measurements m2 ON
+                JOIN ChessWarehouse.dim.Measurements m2 ON
                     cv.MeasurementID2 = m2.MeasurementID
 
                 WHERE s.SourceName = @SourceName
@@ -1046,8 +1046,8 @@ Friend Module modQueries
                 m.MoveNumber,
                 m.TraceKey AS MoveTrace
 
-                FROM lake.Moves m
-                JOIN dim.Colors c ON
+                FROM ChessWarehouse.lake.Moves m
+                JOIN ChessWarehouse.dim.Colors c ON
                     m.ColorID = c.ColorID
 
                 WHERE m.GameID = @GameID
@@ -1068,16 +1068,16 @@ Friend Module modQueries
                 100*ss.StandardDevIation AS StandardDeviation,
                 100*ss.MaxValue AS MaxValue
 
-                FROM stat.StatisticsSummary ss
-                JOIN dim.Sources s ON
+                FROM ChessWarehouse.stat.StatisticsSummary ss
+                JOIN ChessWarehouse.dim.Sources s ON
                     ss.SourceID = s.SourceID
-                JOIN dim.TimeControls tc ON
+                JOIN ChessWarehouse.dim.TimeControls tc ON
                     ss.TimeControlID = tc.TimeControlID
-                JOIN dim.Aggregations agg ON
+                JOIN ChessWarehouse.dim.Aggregations agg ON
                     ss.AggregationID = agg.AggregationID
-                JOIN dim.Measurements ms ON
+                JOIN ChessWarehouse.dim.Measurements ms ON
                     ss.MeasurementID = ms.MeasurementID
-                LEFT JOIN dim.Colors c ON
+                LEFT JOIN ChessWarehouse.dim.Colors c ON
                     ss.ColorID = c.ColorID
 
                 WHERE s.SourceName = @SourceName
@@ -1100,16 +1100,16 @@ Friend Module modQueries
                 ss.StandardDeviation,
                 ss.MinValue
 
-                FROM stat.StatisticsSummary ss
-                JOIN dim.Sources s ON
+                FROM ChessWarehouse.stat.StatisticsSummary ss
+                JOIN ChessWarehouse.dim.Sources s ON
                     ss.SourceID = s.SourceID
-                JOIN dim.TimeControls tc ON
+                JOIN ChessWarehouse.dim.TimeControls tc ON
                     ss.TimeControlID = tc.TimeControlID
-                JOIN dim.Aggregations agg ON
+                JOIN ChessWarehouse.dim.Aggregations agg ON
                     ss.AggregationID = agg.AggregationID
-                JOIN dim.Measurements ms ON
+                JOIN ChessWarehouse.dim.Measurements ms ON
                     ss.MeasurementID = ms.MeasurementID
-                LEFT JOIN dim.Colors c ON
+                LEFT JOIN ChessWarehouse.dim.Colors c ON
                     ss.ColorID = c.ColorID
 
                 WHERE ms.MeasurementName = @MeasurementName

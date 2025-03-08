@@ -1,5 +1,4 @@
 ﻿Imports Microsoft.Data.SqlClient
-Imports System.IO
 Imports System.Windows.Forms
 
 Class MainWindow
@@ -10,12 +9,8 @@ Class MainWindow
 
     Private Sub WindowLoaded() Handles Me.Loaded
 #If DEBUG Then
-        'three directories above exe
-        Dim projectDir As String = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\.."))
         Dim connectionString As String = Environment.GetEnvironmentVariable("ConnectionStringDebug")
 #Else
-        'one directory above exe
-        Dim projectDir As String = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".."))
         Dim connectionString As String = Environment.GetEnvironmentVariable("ConnectionStringRelease")
 #End If
         If connectionString Is Nothing Then
